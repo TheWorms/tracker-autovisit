@@ -1,0 +1,20 @@
+# Credentials — ne jamais publier
+sites.json
+
+# Logs
+logs/
+
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnements virtuels
+venv/
+.venv/
+
+# macOS
+.DS_Store
+
+# Fichiers de test temporaires
+/tmp/test_*.py
