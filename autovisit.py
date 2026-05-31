@@ -204,6 +204,31 @@ def visit_site_playwright(site):
 
             log.info("[" + name + "] URL apres login : " + page.url)
 
+            # Gestion 2FA TOTP
+            if "two-factor" in page.url or "2fa" in page.url:
+                totp_secret = site.get("totp_secret")
+                if not totp_secret:
+                    browser.close()
+                    msg = "ECHEC [" + name + "] 2FA detecte mais totp_secret absent"
+                    log.error(msg)
+                    return False, msg
+                if not PYOTP_AVAILABLE:
+                    browser.close()
+                    msg = "ECHEC [" + name + "] pyotp non installe -- 2FA impossible"
+                    log.error(msg)
+                    return False, msg
+                import pyotp as _pyotp
+                totp_code = _pyotp.TOTP(totp_secret).now()
+                totp_field = site.get("totp_field", "code")
+                log.info("[" + name + "] Code TOTP genere pour 2FA Playwright : " + totp_code)
+                page.fill("input[name='" + totp_field + "']", totp_code)
+                try:
+                    page.click("button.auth-form__primary-button", timeout=timeout)
+                except Exception:
+                    pass  # Navigation deja en cours
+                page.wait_for_load_state("networkidle", timeout=timeout)
+                log.info("[" + name + "] URL apres 2FA : " + page.url)
+
             cookies = page.context.cookies()
             browser.close()
 
