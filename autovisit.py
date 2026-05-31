@@ -338,11 +338,24 @@ def visit_site(site):
                         # GET verify_url avec Bearer token si présent
                         verify_url = site.get("verify_url")
                         jwt_token = data.get("token") or data.get("access_token")
-                        if verify_url and jwt_token:
-                            auth_headers = {"Authorization": "Bearer " + jwt_token}
-                            if use_curl:
-                                auth_headers["Accept-Encoding"] = "identity"
-                            rv = session.get(verify_url, headers=auth_headers, timeout=timeout)
+                        if verify_url:
+                            if jwt_token:
+                                auth_headers = {"Authorization": "Bearer " + jwt_token}
+                            else:
+                                auth_headers = {}
+                            auth_headers["Accept"] = "application/json"
+                            auth_headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0"
+                            if use_curl and site.get("stats_json"):
+                                import requests as _req
+                                _s = _req.Session()
+                                _s.cookies.update(dict(session.cookies))
+                                _s.headers.update({
+                                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0",
+                                    "Accept": "application/json",
+                                })
+                                rv = _s.get(verify_url, timeout=timeout)
+                            else:
+                                rv = session.get(verify_url, headers=auth_headers, timeout=timeout)
                             stats_json = site.get("stats_json", {})
                             if stats_json:
                                 try:
@@ -351,6 +364,7 @@ def visit_site(site):
                                     stats_str = " | ".join(k + ": " + v for k, v in stats.items())
                                     log.info("[" + name + "] Stats -- " + stats_str)
                                 except Exception as e:
+                                    log.info("[" + name + "] DEBUG rv : " + rv.text[:300])
                                     log.warning("[" + name + "] Erreur parsing stats JSON : " + str(e))
                             # Alertes MP
                             alert_keywords = site.get("alert_keywords", [])
@@ -612,7 +626,6 @@ def main():
             results_ok.append("OK [" + site_name + "] " + alerte_msg)
         else:
             (results_ok if ok else results_err).append(msg)
-
     log.info("=== Resume ===")
     for m in results_ok + results_err:
         log.info(m)
