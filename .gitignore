@@ -21,3 +21,5 @@ venv/
 
 # Configurations personnelles de sites (ne pas commiter)
 SITES.md
+cookies/
+cookies/*.json

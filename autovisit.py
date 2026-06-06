@@ -981,7 +981,7 @@ def main():
 
     for site in sites:
         captured_logs.clear()
-        site_url = site.get("url", "")
+        site_url = site.get("url") or site.get("verify_url", "")
         site_domain = site_url.split("/")[2] if "//" in site_url else site_url
         if site.get("session_cookies_file"):
             ok, msg = visit_site_session(site)
@@ -1027,6 +1027,19 @@ def main():
     # Ecriture status.json
     if args.json_output:
         import json as _json
+        # Inclure aussi les sites desactives (enabled: false)
+        for s in cfg.get("sites", []):
+            if not s.get("enabled", True):
+                site_url = s.get("url") or s.get("verify_url", "")
+                site_domain = site_url.split("/")[2] if "//" in site_url else site_url
+                status_sites.append({
+                    "name": s["name"],
+                    "url": site_domain,
+                    "ok": None,
+                    "stats": None,
+                    "alert": None,
+                    "disabled": True
+                })
         status = {
             "updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "sites": status_sites
