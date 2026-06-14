@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autovisit</title>
+<style>
+  :root {
+    --bg:     #f8f6f1;
+    --border: #e2ddd6;
+    --text:   #1a1a1a;
+    --dim:    #6b6560;
+    --ok:     #2d7a4f;
+    --ko:     #c0392b;
+    --alert:  #b07d2a;
+    --accent: #1a1a1a;
+    --link:   #1a1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 16px 20px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  header h1 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  #updated {
+    color: var(--dim);
+    font-size: 11px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: right;
+    color: var(--dim);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0 0 8px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  th.left { text-align: left; padding-left: 0; }
+
+  td {
+    padding: 7px 0 7px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    text-align: right;
+    white-space: nowrap;
+    color: var(--dim);
+    font-size: 12px;
+  }
+
+  td.left { text-align: left; padding-left: 0; }
+  td.na { color: #ccc; font-size: 11px; }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f0ece4; }
+
+  .site-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+  }
+
+  .dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-ok    { background: var(--ok); }
+  .dot-ko    { background: var(--ko); }
+  .dot-alert { background: var(--alert); }
+
+  a { color: var(--text); text-decoration: none; font-weight: 500; }
+  a:hover { text-decoration: underline; }
+
+  .badge-mp {
+    display: inline-block;
+    background: var(--alert);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 2px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .ko-label {
+    color: var(--ko);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  #error {
+    color: var(--ko);
+    padding: 30px 0;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Autovisit</h1>
+  <span id="updated">—</span>
+</header>
+<div id="content">
+<table>
+  <thead>
+    <tr>
+      <th class="left">Site</th>
+      <th>Upload</th>
+      <th>Download</th>
+      <th>Ratio</th>
+      <th>Bonus / Points</th>
+      <th>Autres</th>
+      <th style="width:60px"></th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+
+<script>
+// Colonnes fixes : clés reconnues → colonne
+const COL_UPLOAD  = ['upload'];
+const COL_DOWN    = ['download'];
+const COL_RATIO   = ['ratio'];
+const COL_BONUS   = ['bonus', 'points', 'partage', 'theias', 'credits', 'bonus_upload', 'gift_lvl'];
+
+function parseStats(str) {
+  if (!str) return {};
+  const result = {};
+  str.split('|').forEach(part => {
+    const idx = part.indexOf(':');
+    if (idx < 0) return;
+    const key = part.slice(0, idx).trim().toLowerCase();
+    const val = part.slice(idx + 1).trim();
+    result[key] = val;
+  });
+  return result;
+}
+
+function matchCol(key, cols) {
+  return cols.some(c => key === c || key.includes(c));
+}
+
+function cell(val) {
+  return val ? `<td>${val}</td>` : `<td class="na">—</td>`;
+}
+
+fetch('status.json?_=' + Date.now())
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('updated').textContent = data.updated ? 'Mis à jour : ' + data.updated : '—';
+    const tbody = document.getElementById('tbody');
+
+    (data.sites || []).forEach(site => {
+      const tr = document.createElement('tr');
+
+      let dotClass = 'dot-ok';
+      if (!site.ok) dotClass = 'dot-ko';
+      else if (site.alert) dotClass = 'dot-alert';
+
+      const proto = site.url.startsWith('http') ? site.url : 'https://' + site.url;
+
+      const nameCell = `<td class="left"><div class="site-name">
+        <span class="dot ${dotClass}"></span>
+        <a href="${proto}" target="_blank">${site.name}</a>
+      </div></td>`;
+
+      if (!site.ok) {
+        tr.innerHTML = nameCell +
+          `<td colspan="5" class="left"><span class="ko-label">Échec</span></td><td></td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      const stats = parseStats(site.stats);
+
+      // Upload
+      let upload = null, download = null, ratio = null, bonus = null;
+      const others = [];
+
+      Object.entries(stats).forEach(([k, v]) => {
+        if (matchCol(k, COL_UPLOAD) && !upload)       upload = v;
+        else if (matchCol(k, COL_DOWN) && !download)  download = v;
+        else if (matchCol(k, COL_RATIO) && !ratio)    ratio = v;
+        else if (matchCol(k, COL_BONUS) && !bonus)    bonus = v;
+        else if (v && v !== 'N/A')                    others.push(k + ': ' + v);
+      });
+
+      const othersStr = others.length ? others.join(' | ') : null;
+
+      const statusCell = site.alert
+        ? `<td><span class="badge-mp">MP</span></td>`
+        : `<td></td>`;
+
+      tr.innerHTML = nameCell +
+        cell(upload) + cell(download) + cell(ratio) + cell(bonus) +
+        cell(othersStr) + statusCell;
+
+      tbody.appendChild(tr);
+    });
+  })
+  .catch(() => {
+    document.getElementById('content').innerHTML = '<div id="error">status.json introuvable</div>';
+  });
+</script>
+</body>
+</html>
