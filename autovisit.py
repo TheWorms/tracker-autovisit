@@ -35,6 +35,7 @@ CONFIG   = DATA_DIR / "sites.json"
 LOG_FILE = DATA_DIR / "logs" / f"visit_{datetime.now().strftime('%Y-%m')}.log"
 
 LOG_FILE.parent.mkdir(exist_ok=True)
+HISTORY_DB = DATA_DIR / "history.db"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -179,6 +180,66 @@ def extract_stats_json(data, fields):
         except (KeyError, IndexError, TypeError):
             stats[key] = "N/A"
     return stats
+
+def init_history_db():
+    """Cree la table stat_snapshots si elle n existe pas."""
+    import sqlite3
+    try:
+        conn = sqlite3.connect(HISTORY_DB)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS stat_snapshots (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                site         TEXT NOT NULL,
+                status       TEXT NOT NULL,
+                error        TEXT,
+                alert        TEXT,
+                fields_json  TEXT NOT NULL,
+                captured_at  TEXT NOT NULL
+            )
+        """)
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_stat_snapshots_site_time
+                ON stat_snapshots (site, captured_at)
+        """)
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        log.warning("Init history.db echouee : " + str(e))
+
+def parse_stats_str(s):
+    """Parse 'upload: X | ratio: Y | bonus: Z' en dict."""
+    if not s:
+        return {}
+    result = {}
+    for part in s.split("|"):
+        if ":" not in part:
+            continue
+        k, v = part.split(":", 1)
+        result[k.strip()] = v.strip()
+    return result
+
+def write_snapshot(site_name, status, error, alert, fields):
+    """Insere un snapshot dans stat_snapshots."""
+    import sqlite3
+    import json
+    try:
+        conn = sqlite3.connect(HISTORY_DB)
+        conn.execute(
+            "INSERT INTO stat_snapshots (site, status, error, alert, fields_json, captured_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                site_name,
+                status,
+                error,
+                alert,
+                json.dumps(fields, ensure_ascii=False),
+                datetime.now().isoformat(timespec="seconds"),
+            )
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        log.warning("Ecriture history.db echouee pour " + site_name + " : " + str(e))
 
 def visit_site_playwright(site):
     name = site["name"]
@@ -1003,6 +1064,7 @@ def main():
         log.warning("Aucun site actif trouve dans la config.")
         return
     log.info("=== Demarrage -- " + str(len(sites)) + " site(s) a visiter ===")
+    init_history_db()
     results_ok  = []
     results_err = []
     # Collecte pour status.json
@@ -1045,7 +1107,10 @@ def main():
         else:
             (results_ok if ok else results_err).append(msg)
             status_sites.append({"name": site["name"], "url": site_domain, "ok": ok, "stats": site_stats_str, "alert": site_alert})
-
+        # Historisation SQLite
+        snap_status = "ok" if ok else "error"
+        snap_error = None if ok else (msg if isinstance(msg, str) else str(msg))
+        write_snapshot(site["name"], snap_status, snap_error, site_alert, parse_stats_str(site_stats_str))
     log.removeHandler(capture_handler)
     log.info("=== Resume ===")
     for m in results_ok + results_err:
