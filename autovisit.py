@@ -31,7 +31,8 @@ except ImportError:
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
-CONFIG   = DATA_DIR / "sites.json"
+CONFIG   = DATA_DIR / "config.json"
+SITES_D  = DATA_DIR / "sites.d"
 LOG_FILE = DATA_DIR / "logs" / f"visit_{datetime.now().strftime('%Y-%m')}.log"
 
 LOG_FILE.parent.mkdir(exist_ok=True)
@@ -71,7 +72,19 @@ def load_config():
         log.error("Fichier de config introuvable : " + str(CONFIG))
         sys.exit(1)
     with open(CONFIG, encoding="utf-8") as f:
-        return json.load(f)
+        cfg = json.load(f)
+    if not SITES_D.is_dir():
+        log.error("Repertoire de sites introuvable : " + str(SITES_D))
+        sys.exit(1)
+    sites = []
+    for path in sorted(SITES_D.glob("*.json")):
+        with open(path, encoding="utf-8") as f:
+            sites.append(json.load(f))
+    if not sites:
+        log.error("Aucun site dans " + str(SITES_D))
+        sys.exit(1)
+    cfg["sites"] = sites
+    return cfg
 
 def send_pushover(cfg, subject, body):
     pc = cfg.get("pushover", {})

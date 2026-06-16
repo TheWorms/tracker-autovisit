@@ -38,17 +38,17 @@ Le script `install.sh` s'occupe de tout :
 - Vérification de Python3
 - Installation de pip et des dépendances (`requests`, `pyotp`, `curl_cffi`)
 - Installation optionnelle de `playwright` et du navigateur Firefox headless
-- Copie de `sites.example.json` vers `sites.json`
+- Création de `data/config.json` (config globale) et du répertoire `data/sites.d/`
 - Installation de la commande courte `autovisit`
 
-Il ne reste plus qu'à éditer `sites.json` avec tes identifiants.
+Il ne reste plus qu'à éditer `data/config.json` et à ajouter un fichier par site dans `data/sites.d/`.
 
 ### Installation manuelle (sans install.sh)
 
 ```bash
 pip install requests pyotp curl_cffi --break-system-packages
 pip install playwright --break-system-packages && playwright install firefox
-cp sites.example.json sites.json
+mkdir -p data/sites.d
 ```
 
 ### Commande courte (si install.sh non utilisé)
@@ -62,19 +62,34 @@ chmod 755 /usr/local/bin/autovisit
 
 ## Configuration
 
-Toute la configuration se fait dans `sites.json`.
+La configuration globale (Pushover, etc.) est dans `data/config.json`.
+Chaque site a son propre fichier dans `data/sites.d/<slug>.json` (slug = nom du site en minuscules).
 
 ### Structure générale
 
+`data/config.json` (configuration globale) :
 ```json
 {
-  "pushover": {
-    "api_token": "TON_APP_TOKEN",
-    "user_key": "TON_USER_KEY"
-  },
-  "sites": [
-    { ... }
-  ]
+    "pushover": {
+        "api_token": "TON_APP_TOKEN",
+        "user_key": "TON_USER_KEY"
+    }
+}
+```
+
+`data/sites.d/<slug>.json` (un fichier par site, objet site brut) :
+```json
+{
+    "name": "MonSite",
+    "url": "https://monsite.example/",
+    "post_url": "https://monsite.example/login.php",
+    "username_field": "username",
+    "password_field": "password",
+    "username": "...",
+    "password": "...",
+    "verify_url": "https://monsite.example/",
+    "success_keywords": ["..."],
+    "enabled": true
 }
 ```
 
@@ -552,8 +567,8 @@ La notification Pushover reçue aura le titre **"Autovisit - MP"** et le corps *
 
 ## Sécurité
 
-- `sites.json` contient tes mots de passe et secrets TOTP en clair — protège-le : `chmod 600 sites.json`
-- Ne partage jamais ton `sites.json`
+- Les fichiers `data/config.json` et `data/sites.d/*.json` contiennent tes mots de passe et secrets TOTP en clair — protège-les : `chmod 600 data/config.json data/sites.d/*.json`
+- Ne partage jamais le contenu de `data/`
 - Les fichiers cookies de session (`session_cookies_file`) doivent être protégés : `chmod 600 cookies/*.json`
 - `SITES.md` (configs personnelles) est dans le `.gitignore` — ne le commite pas
 
@@ -565,7 +580,7 @@ La notification Pushover reçue aura le titre **"Autovisit - MP"** et le corps *
 autovisit --list
 ```
 
-Affiche un tableau récapitulatif de tous les sites configurés dans `sites.json` :
+Affiche un tableau récapitulatif de tous les sites configurés dans `data/sites.d/` :
 
 | Colonne | Description |
 |---|---|
