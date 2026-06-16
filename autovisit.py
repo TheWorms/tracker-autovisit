@@ -511,36 +511,76 @@ def visit_site_playwright(site):
         log.error(msg)
         return False, msg
 
+def solve_cloudflare(solver_url, target_url, timeout=60):
+    """Resout un challenge Cloudflare via FlareSolverr.
+    Retourne (cookies, user_agent) ou (None, None) en cas d'echec.
+    cookies = liste d'objets {name, value, domain, path} (format FlareSolverr).
+    L'UA retourne DOIT etre reutilise dans la session : le cf_clearance y est lie."""
+    try:
+        r = requests.post(
+            solver_url,
+            json={
+                "cmd": "request.get",
+                "url": target_url,
+                "maxTimeout": timeout * 1000,
+            },
+            timeout=timeout + 10,
+        )
+    except Exception as e:
+        log.error("FlareSolverr injoignable (" + solver_url + ") : " + str(e))
+        return None, None
+    try:
+        data = r.json()
+    except Exception as e:
+        log.error("FlareSolverr reponse illisible : " + str(e))
+        return None, None
+    if data.get("status") != "ok":
+        log.error("FlareSolverr status != ok : " + str(data.get("message")))
+        return None, None
+    sol = data.get("solution", {})
+    if sol.get("status") != 200:
+        log.error("FlareSolverr HTTP cible " + str(sol.get("status")))
+        return None, None
+    cookies = sol.get("cookies", [])
+    ua = sol.get("userAgent")
+    if not cookies or not ua:
+        log.error("FlareSolverr : cookies ou userAgent manquant")
+        return None, None
+    return cookies, ua
+
 def visit_site_session(site):
     """Visite un site en utilisant des cookies de session pre-existants (skip login)."""
     name = site["name"]
     timeout = site.get("timeout", 20)
     cookies_file = site.get("session_cookies_file")
+    cf_solver = site.get("cf_solver")
+    user_agent = site.get("user_agent")
 
-    if not cookies_file:
-        msg = "ECHEC [" + name + "] session_cookies_file manquant"
+    # cf_solver (FlareSolverr) rend session_cookies_file et user_agent optionnels :
+    # le challenge Cloudflare est resolu a la volee, le cf_clearance et l'UA en sont issus.
+    if not cookies_file and not cf_solver:
+        msg = "ECHEC [" + name + "] session_cookies_file ou cf_solver requis"
         log.error(msg)
         return False, msg
-
-    user_agent = site.get("user_agent")
-    if not user_agent and "User-Agent" not in site.get("extra_headers", {}):
+    if not cf_solver and not user_agent and "User-Agent" not in site.get("extra_headers", {}):
         msg = "ECHEC [" + name + "] user_agent requis en mode session (les cookies cf_clearance y sont lies)"
         log.error(msg)
         return False, msg
 
-    cookies_path = Path(cookies_file)
-    if not cookies_path.exists():
-        msg = "ECHEC [" + name + "] fichier cookies introuvable : " + cookies_file
-        log.error(msg)
-        return False, msg
-
-    try:
-        with open(cookies_path, encoding="utf-8") as f:
-            cookies_data = json.load(f)
-    except Exception as e:
-        msg = "ECHEC [" + name + "] erreur lecture cookies : " + str(e)
-        log.error(msg)
-        return False, msg
+    cookies_data = []
+    if cookies_file:
+        cookies_path = Path(cookies_file)
+        if not cookies_path.exists():
+            msg = "ECHEC [" + name + "] fichier cookies introuvable : " + cookies_file
+            log.error(msg)
+            return False, msg
+        try:
+            with open(cookies_path, encoding="utf-8") as f:
+                cookies_data = json.load(f)
+        except Exception as e:
+            msg = "ECHEC [" + name + "] erreur lecture cookies : " + str(e)
+            log.error(msg)
+            return False, msg
 
     session = requests.Session()
     session.headers.update({
@@ -552,6 +592,21 @@ def visit_site_session(site):
     extra_headers = site.get("extra_headers", {})
     if extra_headers:
         session.headers.update(extra_headers)
+
+    # Resolution du challenge Cloudflare via FlareSolverr (si configure)
+    if cf_solver:
+        target = site.get("url") or site.get("verify_url")
+        log.info("[" + name + "] Resolution Cloudflare via FlareSolverr : " + cf_solver)
+        cf_cookies, cf_ua = solve_cloudflare(cf_solver, target, timeout=site.get("cf_solver_timeout", 60))
+        if not cf_cookies:
+            msg = "ECHEC [" + name + "] FlareSolverr n'a pas resolu le challenge"
+            log.error(msg)
+            return False, msg
+        # L'UA renvoye par FlareSolverr fait foi (le cf_clearance y est lie)
+        session.headers["User-Agent"] = cf_ua
+        log.info("[" + name + "] FlareSolverr OK -- UA force : " + cf_ua)
+        # Les cookies FlareSolverr sont ajoutes a ceux du fichier (s'il y en a)
+        cookies_data = list(cookies_data) + list(cf_cookies)
 
     # Chargement des cookies (format Cookie-Editor : liste d objets)
     for c in cookies_data:
@@ -566,7 +621,8 @@ def visit_site_session(site):
                 path=c.get("path", "/"),
             )
 
-    log.info("[" + name + "] " + str(len(cookies_data)) + " cookie(s) charge(s) depuis " + cookies_file)
+    source = cookies_file if cookies_file else "FlareSolverr"
+    log.info("[" + name + "] " + str(len(cookies_data)) + " cookie(s) charge(s) depuis " + source)
 
     # Mode hybride : si post_url + username/password definis, faire le login derriere les cookies
     post_url = site.get("post_url")
@@ -1116,7 +1172,7 @@ def main():
         captured_logs.clear()
         site_url = site.get("url") or site.get("verify_url", "")
         site_domain = site_url.split("/")[2] if "//" in site_url else site_url
-        if site.get("session_cookies_file"):
+        if site.get("session_cookies_file") or site.get("cf_solver"):
             ok, msg = visit_site_session(site)
         elif site.get("use_playwright"):
             ok, msg = visit_site_playwright(site)
