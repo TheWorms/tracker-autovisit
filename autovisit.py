@@ -3,6 +3,7 @@
 import json
 import logging
 import re
+import subprocess
 import sys
 import time
 import random
@@ -80,6 +81,53 @@ def load_config():
         sys.exit(1)
     cfg["sites"] = sites
     return cfg
+
+
+def send_mail(cfg, subject, body):
+    """Envoie un mail via msmtp. Desactivable via cfg['mail']['enabled']=false."""
+    mc = cfg.get("mail", {})
+    if not mc.get("enabled") or not mc.get("to"):
+        return
+    to = mc["to"]
+    msg = "Subject: " + subject + "\nTo: " + to + "\nContent-Type: text/plain; charset=utf-8\n\n" + body
+    try:
+        r = subprocess.run(
+            ["msmtp", to],
+            input=msg.encode("utf-8"),
+            capture_output=True,
+            timeout=30,
+        )
+        if r.returncode == 0:
+            log.info("Mail envoye : " + subject)
+        else:
+            err = r.stderr.decode("utf-8", errors="replace").strip()
+            log.error("Echec mail msmtp (rc=" + str(r.returncode) + ") : " + err)
+    except Exception as e:
+        log.error("Echec mail : " + str(e))
+
+
+def send_ntfy(cfg, title, body):
+    """Envoie une notification ntfy via HTTP POST. Auth Basic si user+pass."""
+    nc = cfg.get("ntfy", {})
+    if not nc.get("enabled") or not nc.get("url") or not nc.get("topic"):
+        return
+    url = nc["url"].rstrip("/") + "/" + nc["topic"]
+    headers = {
+        "Title": title,
+        "Priority": str(nc.get("priority", 4)),
+        "Tags": nc.get("tags", "warning"),
+    }
+    auth = None
+    if nc.get("auth_user") and nc.get("auth_pass"):
+        auth = (nc["auth_user"], nc["auth_pass"])
+    try:
+        r = requests.post(url, data=body.encode("utf-8"), headers=headers, auth=auth, timeout=15)
+        if r.status_code == 200:
+            log.info("ntfy envoye : " + title)
+        else:
+            log.error("Echec ntfy HTTP " + str(r.status_code) + " : " + r.text[:200])
+    except Exception as e:
+        log.error("Echec ntfy : " + str(e))
 
 
 def extract_csrf(html, field_name=None):
@@ -1352,11 +1400,59 @@ def main():
     log.info("=== Resume ===")
     for m in results_ok + results_err:
         log.info(m)
+    # Categorisation pour notifications
+    ko_sites = [e for e in status_sites if e.get("ok") is False]
+    mp_sites = [e for e in status_sites if e.get("ok") is True and e.get("alert")]
+    ok_sites = [e for e in status_sites if e.get("ok") is True and not e.get("alert")]
+    n_total = len(status_sites)
+    n_ok    = len(ok_sites) + len(mp_sites)
+    n_ko    = len(ko_sites)
+    n_mp    = len(mp_sites)
+    today   = datetime.now().strftime("%Y-%m-%d")
+
     if results_err:
-        subject = "Autovisit : " + str(len(results_err)) + " echec(s)"
-        log.info(subject)
+        log.info("Autovisit : " + str(n_ko) + " echec(s)")
     else:
         log.info("Tous les sites ont ete visites avec succes")
+
+    # Routage notifications (rien en --silent)
+    if not args.silent:
+        # Mail recap complet uniquement en --verbose
+        if args.verbose:
+            mail_subject = "Autovisit " + today + " : " + str(n_ok) + " OK / " + str(n_ko) + " KO / " + str(n_mp) + " MP"
+            mail_body = "Sites visites : " + str(n_total) + "\n\n"
+            if mp_sites:
+                mail_body += "Sites OK avec MP non lus (" + str(n_mp) + ") :\n"
+                for e in mp_sites:
+                    mail_body += "- " + e["name"] + "\n"
+                mail_body += "\n"
+            if ok_sites:
+                mail_body += "Sites OK sans alerte (" + str(len(ok_sites)) + ") :\n"
+                for e in ok_sites:
+                    mail_body += "- " + e["name"] + "\n"
+                mail_body += "\n"
+            if ko_sites:
+                err_by_name = {}
+                for m in results_err:
+                    mm = re.match(r"ECHEC \[([^\]]+)\] (.*)", m, re.DOTALL)
+                    if mm:
+                        err_by_name[mm.group(1)] = mm.group(2)
+                mail_body += "Sites KO (" + str(n_ko) + ") :\n"
+                for e in ko_sites:
+                    err_msg = err_by_name.get(e["name"], "Erreur inconnue")
+                    err_short = err_msg.split("\n")[0][:200]
+                    mail_body += "- " + e["name"] + " : " + err_short + "\n"
+            send_mail(cfg, mail_subject, mail_body)
+        # ntfy : toujours si KO ou MP (sauf --silent)
+        if ko_sites or mp_sites:
+            ntfy_title = "Autovisit " + today
+            parts = []
+            if ko_sites:
+                parts.append("KO: " + ", ".join(e["name"] for e in ko_sites))
+            if mp_sites:
+                parts.append("MP: " + ", ".join(e["name"] for e in mp_sites))
+            ntfy_body = " | ".join(parts)
+            send_ntfy(cfg, ntfy_title, ntfy_body)
     # Ecriture status.json
     if args.json_output:
         import json as _json
