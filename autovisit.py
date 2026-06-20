@@ -191,6 +191,18 @@ def extract_stats(html, patterns):
             stats[key] = value
     return stats
 
+def get_json_path(data, path, default=None):
+    """Walk un path dotted (ex: 'meta.unreadCount') ou plat (ex: 'total')
+    dans un dict/liste JSON. Retourne default si le chemin n'existe pas.
+    Conserve le type d'origine de la valeur (int, str, bool, ...)."""
+    try:
+        val = data
+        for part in path.split("."):
+            val = val[part] if isinstance(val, dict) else val[int(part)]
+        return val
+    except (KeyError, IndexError, TypeError, ValueError):
+        return default
+
 def extract_stats_json(data, fields):
     stats = {}
     for key, path in fields.items():
@@ -465,7 +477,7 @@ def visit_site_playwright(site):
             if mp_url:
                 mp_data = intercepted.get(mp_url)
                 if mp_data:
-                    mp_count = mp_data.get(mp_json_field, 0)
+                    mp_count = get_json_path(mp_data, mp_json_field, 0)
                     if mp_count and int(mp_count) > 0:
                         log.info("[" + name + "] ALERTE : " + str(mp_count) + " MP non lu(s)")
                         return True, ("ALERTE", name, "mp_url", True)
@@ -788,15 +800,10 @@ def visit_site(site):
         })
 
     try:
-        log.info("[" + name + "] Chargement de la page de login : " + site["url"])
         get_headers = {"Accept-Encoding": "identity"} if use_curl else {}
-        r = session.get(site["url"], timeout=timeout, headers=get_headers)
-        if r.status_code != 200:
-            msg = "ECHEC [" + name + "] Page de login inaccessible (HTTP " + str(r.status_code) + ")"
-            log.error(msg)
-            return False, msg
 
-        # GET préliminaires optionnels
+        # GET preliminaires optionnels (initialisation de session, cookies d'API, etc.)
+        # Doivent etre executes AVANT le GET de la page de login.
         for pre_url in site.get("pre_visit_urls", []):
             try:
                 session.get(pre_url, timeout=timeout, headers=get_headers)
@@ -804,6 +811,13 @@ def visit_site(site):
                 time.sleep(random.uniform(0.3, 0.8))
             except:
                 pass
+
+        log.info("[" + name + "] Chargement de la page de login : " + site["url"])
+        r = session.get(site["url"], timeout=timeout, headers=get_headers)
+        if r.status_code != 200:
+            msg = "ECHEC [" + name + "] Page de login inaccessible (HTTP " + str(r.status_code) + ")"
+            log.error(msg)
+            return False, msg
 
         time.sleep(random.uniform(1.5, 3.0))
 
@@ -969,7 +983,7 @@ def visit_site(site):
                                 try:
                                     rmp = session.get(mp_url, headers=auth_headers, timeout=timeout)
                                     mp_data = rmp.json()
-                                    mp_count = mp_data.get(mp_json_field, 0)
+                                    mp_count = get_json_path(mp_data, mp_json_field, 0)
                                     if mp_count and int(mp_count) > 0:
                                         log.info("[" + name + "] ALERTE : " + str(mp_count) + " MP non lu(s)")
                                         return True, ("ALERTE", name, "mp_url", True)
