@@ -8,6 +8,7 @@ import time
 import random
 from datetime import datetime
 from pathlib import Path
+from collections import deque
 import requests
 
 try:
@@ -240,6 +241,26 @@ def fetch_extra_stats(session, url, fields, name, timeout):
         log.warning("[" + name + "] extra_url echec : " + str(e))
         return {}
     return extract_stats_json(data, fields)
+
+def is_retryable_error(msg):
+    """Determine si un msg d'echec correspond a une erreur transitoire retryable.
+    Couvre : timeout, codes HTTP 5xx, 429, DNS, connexion refusee/reset."""
+    if not msg:
+        return False
+    m = msg.lower()
+    if re.search(r"\bhttp\s+5\d{2}\b", m):
+        return True
+    if re.search(r"\bhttp\s+429\b", m):
+        return True
+    if "timeout" in m or "timed out" in m:
+        return True
+    if "connection refused" in m or "connection reset" in m:
+        return True
+    if "max retries exceeded" in m:
+        return True
+    if "name or service not known" in m or "temporary failure in name resolution" in m:
+        return True
+    return False
 
 def init_history_db():
     """Cree la table stat_snapshots si elle n existe pas."""
@@ -1302,7 +1323,14 @@ def main():
     capture_handler = CaptureHandler()
     log.addHandler(capture_handler)
 
-    for site in sites:
+    queue = deque(sites)
+    attempts = {s["name"]: 0 for s in sites}
+
+    while queue:
+        site = queue.popleft()
+        name = site["name"]
+        attempts[name] += 1
+        attempt = attempts[name]
         captured_logs.clear()
         site_url = site.get("url") or site.get("verify_url", "")
         site_domain = site_url.split("/")[2] if "//" in site_url else site_url
@@ -1312,6 +1340,17 @@ def main():
             ok, msg, extras = visit_site_playwright(site)
         else:
             ok, msg, extras = visit_site(site)
+        # Gestion des nouvelles tentatives sur erreur reseau transitoire
+        if not ok and is_retryable_error(msg) and attempt < 3:
+            if attempt == 1:
+                log.warning("[" + name + "] Erreur transitoire (tentative 1/3), remise en fin de file")
+                queue.append(site)
+                continue
+            else:
+                log.warning("[" + name + "] Erreur transitoire (tentative 2/3), attente 10s avant tentative 3/3")
+                time.sleep(10)
+                queue.appendleft(site)
+                continue
         # Extraire stats et alerte depuis les logs captures
         site_stats_str = None
         site_alert = None
