@@ -55,17 +55,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--list", action="store_true", help="Afficher la config des sites et quitter")
     parser.add_argument("--silent",  action="store_true", help="Aucune notification")
-    parser.add_argument("--mp",      action="store_true", help="Notifier les alertes MP")
-    parser.add_argument("--error",   action="store_true", help="Notifier les erreurs")
-    parser.add_argument("--verbose", action="store_true", help="Toutes les notifications")
+    parser.add_argument("--verbose", action="store_true", help="Notifications mail completes")
     parser.add_argument("--site",    type=str, nargs="+", default=None, help="Visiter uniquement ces sites")
     parser.add_argument("--stats",   action="store_true", help="Afficher uniquement les lignes de stats")
     parser.add_argument("--json-output", action="store_true", help="Ecrire status.json apres le run")
     args = parser.parse_args()
-    # Par defaut : --mp --error si aucun mode specifie
-    if not any([args.silent, args.mp, args.error, args.verbose, args.stats, args.json_output]):
-        args.mp = True
-        args.error = True
     return args
 
 def load_config():
@@ -86,25 +80,6 @@ def load_config():
         sys.exit(1)
     cfg["sites"] = sites
     return cfg
-
-def send_pushover(cfg, subject, body):
-    pc = cfg.get("pushover", {})
-    if not pc.get("api_token") or not pc.get("user_key"):
-        log.warning("Pushover non configure -- notification ignoree.")
-        return
-    try:
-        r = requests.post("https://api.pushover.net/1/messages.json", data={
-            "token":   pc["api_token"],
-            "user":    pc["user_key"],
-            "title":   subject,
-            "message": body,
-        }, timeout=15)
-        if r.status_code == 200:
-            log.info("Pushover envoye : " + subject)
-        else:
-            log.error("Echec Pushover HTTP " + str(r.status_code))
-    except Exception as e:
-        log.error("Echec Pushover : " + str(e))
 
 
 def extract_csrf(html, field_name=None):
@@ -1363,8 +1338,6 @@ def main():
             site_name = site["name"]
             alerte_msg = "MP non lu sur " + site_name
             log.info("[" + site_name + "] " + alerte_msg)
-            if args.verbose or args.mp:
-                send_pushover(cfg, "Autovisit - MP", alerte_msg)
             results_ok.append("OK [" + site_name + "] " + alerte_msg)
             site_alert = "MP non lu"
             status_sites.append({"name": site_name, "url": site_domain, "ok": True, "stats": site_stats_str, "alert": site_alert})
@@ -1380,15 +1353,10 @@ def main():
     for m in results_ok + results_err:
         log.info(m)
     if results_err:
-        body = "Echecs :\n" + "\n".join(results_err)
         subject = "Autovisit : " + str(len(results_err)) + " echec(s)"
         log.info(subject)
-        if not args.silent and (args.verbose or args.error):
-            send_pushover(cfg, subject, body)
     else:
         log.info("Tous les sites ont ete visites avec succes")
-        if args.verbose:
-            send_pushover(cfg, "Autovisit", "Tous les sites OK")
     # Ecriture status.json
     if args.json_output:
         import json as _json
