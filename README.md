@@ -193,6 +193,48 @@ Le champ `stats` accepte un dictionnaire de patterns regex appliqués sur le HTM
 
 Les patterns `stats` utilisent `re.DOTALL | re.IGNORECASE`. Les clés `stats_json` supportent la notation pointée pour les objets imbriqués (`"user.stats.ratio"`). Les clés contenant `upload`, `download`, `bytes` ou `size` sont automatiquement converties en unités lisibles (Ko/Mo/Go/To).
 
+### Stats complémentaires (`extra_url`)
+
+Certaines stats utiles ne sont pas exposées sur la page principale (`verify_url`) mais sur un endpoint dédié : FL tokens sur une page d'historique, compteur de torrents en seed sur une page « torrents actifs », bonus cumulé sur une page profil séparée. Le champ `extra_url` permet de déclarer cet endpoint, et `extra_stats` les patterns à y appliquer. Le format est piloté par `extra_format` (`"json"` par défaut, ou `"html"`).
+
+Exemple HTML (cumul de seeding sur une page séparée) :
+
+```json
+"verify_url": "https://monsite.example/profile",
+"stats": {
+  "ratio": "Ratio:\\s*([\\d.]+)",
+  "upload": {"pattern": "Upload:\\s*([\\d.]+)\\s*([KMGT]B)", "unit": "auto"}
+},
+"extra_url": "https://monsite.example/account/active-torrents",
+"extra_format": "html",
+"extra_stats": {
+  "seeding": "(\\d+)\\s+en partage"
+}
+```
+
+Exemple JSON (FL tokens via API) :
+
+```json
+"extra_url": "https://monsite.example/api/user/bonus",
+"extra_format": "json",
+"extra_stats": {
+  "tokens": "data.tokens.freeleech",
+  "bonus": "data.points"
+}
+```
+
+Les stats principales et complémentaires sont fusionnées avant l'unique ligne `Stats --` du log, qui est aussi la seule source d'historisation BDD. Émettre `extra_url` ne crée jamais un second snapshot.
+
+### Compatibilité par chemin de visite
+
+| Fonction | `extra_url` supporté |
+|---|---|
+| `visit_site()` (auth username/password classique) | ✅ |
+| `visit_site_session()` (cookies pré-existants ou FlareSolverr) | ✅ |
+| `visit_site_playwright()` (Firefox headless) | ❌ |
+
+Pour un site Playwright, les stats complémentaires doivent être obtenues via `playwright_intercept` + `playwright_stats_url` (interception XHR/fetch d'une URL d'API exposée par la SPA).
+
 ---
 
 ## Exemples de configuration
