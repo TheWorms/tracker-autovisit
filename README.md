@@ -71,9 +71,18 @@ Chaque site a son propre fichier dans `data/sites.d/<slug>.json` (slug = nom du 
 `data/config.json` (configuration globale) :
 ```json
 {
-    "pushover": {
-        "api_token": "TON_APP_TOKEN",
-        "user_key": "TON_USER_KEY"
+    "mail": {
+        "enabled": true,
+        "to": "autovisit@example.org"
+    },
+    "ntfy": {
+        "enabled": true,
+        "url": "https://ntfy.example.org",
+        "topic": "autovisit",
+        "auth_user": "autovisit",
+        "auth_pass": "CHANGE_ME",
+        "priority": 4,
+        "tags": "warning"
     }
 }
 ```
