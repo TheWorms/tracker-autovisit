@@ -29,6 +29,13 @@ if [[ "$answer" =~ ^[oOyY]$ ]]; then
 else
     echo "⏭  Playwright ignoré"
 fi
+# 4b. Note FlareSolverr (installation manuelle requise)
+echo ""
+echo "ℹ  FlareSolverr (optionnel) : requis pour les sites avec challenge Cloudflare"
+echo "   non franchi par Playwright. Installation manuelle, par ex. via Docker :"
+echo "     docker run -d --name flaresolverr --restart unless-stopped \\"
+echo "       -p 127.0.0.1:8191:8191 ghcr.io/flaresolverr/flaresolverr:latest"
+echo "   Puis renseigner \"cf_solver\": \"http://127.0.0.1:8191/v1\" dans les sites concernés."
 # 5. Création de l'arborescence de config si absente
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 mkdir -p "$SCRIPT_DIR/data" "$SCRIPT_DIR/data/logs" "$SCRIPT_DIR/data/cookies" "$SCRIPT_DIR/data/sites.d"
