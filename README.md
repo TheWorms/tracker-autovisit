@@ -123,6 +123,9 @@ Chaque site a son propre fichier dans `data/sites.d/<slug>.json` (slug = nom du 
 | `alert_label` | | Libellé de l'alerte MP dans les logs et notifications (défaut : le mot-clé ou la clé surveillée) |
 | `stats` | | Dict de patterns regex pour extraire les statistiques depuis le HTML |
 | `stats_json` | | Dict de chemins de clés pour extraire les statistiques depuis une réponse JSON |
+| `extra_url` | | URL d'un endpoint complémentaire interrogé après `verify_url` pour récupérer des stats absentes de la page principale (FL tokens, seeding count, bonus...). Ses résultats sont fusionnés dans le log `Stats --` unique avant historisation |
+| `extra_stats` | | Dict de patterns à appliquer sur `extra_url`. Format identique à `stats` (regex polymorphe) si `extra_format: "html"`, ou à `stats_json` (chemins pointés) si `extra_format: "json"` |
+| `extra_format` | | `"json"` (défaut) ou `"html"`. Détermine comment `extra_stats` est interprété. Toute autre valeur déclenche un warning et fallback JSON |
 | `mp_url` | | URL d'une API JSON pour vérifier les MP non lus |
 | `mp_json_field` | | Champ JSON à vérifier dans la réponse `mp_url` (défaut: `total`) |
 | `totp_secret` | | Secret TOTP base32 pour le 2FA |
