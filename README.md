@@ -18,6 +18,12 @@ Fork divergent de [Gusdezup/Autovisit](https://github.com/Gusdezup/Autovisit).
 
 ---
 
+## Aperçu
+
+![Page web autovisit](docs/img/web-preview.png)
+
+---
+
 ## Prérequis
 
 **Debian / Debian like — installer Python et pip si pas déjà présents :**
