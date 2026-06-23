@@ -150,6 +150,21 @@ Dans ce mode, nginx/systemd/cron sont configurés directement sur la cible (le f
 
 ---
 
+## Crédits & remerciements
+
+MALINOIS est une **surcouche dashboard** : tout le travail de collecte (visite des trackers,
+authentification, extraction) revient à l'outil amont. Merci à ses auteurs, sans qui rien de
+tout ceci n'existerait.
+
+- **Gusdezup** — auteur original de `tracker-autovisit`.
+- **lol-powa** — fork repris et maintenu (`lol-powa/tracker-autovisit`), base de ce projet.
+- **MALINOIS** — couche web ajoutée par-dessus : dashboard, inspecteur de regex, authentification,
+  icônes, et packaging Docker.
+
+Reporte-toi aux dépôts amont pour la **licence** et les conditions d'utilisation de l'outil de collecte.
+
+---
+
 ## Structure du dépôt
 
 ```
