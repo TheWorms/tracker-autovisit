@@ -8,7 +8,7 @@ services:
       - TZ=${TZ:-Europe/Paris}
       - CRON_SCHEDULE=${CRON_SCHEDULE:-0 6 * * *}
     ports:
-      - "${MALINOIS_PORT:-8080}:80"
+      - "${Malinois_PORT:-8080}:80"
     volumes:
       # Toutes les données persistantes (configs sites, cookies, logs, status, sauvegardes)
       - ./data:/opt/tracker-autovisit/data

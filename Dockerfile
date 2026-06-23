@@ -1,4 +1,4 @@
-# MALINOIS — image autonome (overlay dashboard + outil tracker-autovisit).
+# Malinois — image autonome (overlay dashboard + outil tracker-autovisit).
 # Se construit depuis la RACINE de ton fork tracker-autovisit (là où vit autovisit.py).
 FROM python:3.12-slim-bookworm
 
@@ -10,18 +10,18 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # 1) Paquets système : nginx, cron, supervisor, tzdata + utilitaires
 RUN apt-get update && apt-get install -y --no-install-recommends \
         nginx cron supervisor tzdata ca-certificates curl procps \
- && rm -f /etc/nginx/sites-enabled/default \
- && rm -rf /var/lib/apt/lists/*
+ && rm -f /etc/nginx/sites-enabled/default
 
 # 2) python3 dans /usr/bin pour le shebang appelé par cron (#!/usr/bin/env python3)
 RUN ln -sf /usr/local/bin/python3 /usr/bin/python3
 
-# 3) Dépendances Python de la couche MALINOIS + runtime de collecte
+# 3) Dépendances Python de la couche Malinois + runtime de collecte
 COPY docker/requirements.txt /tmp/req-malinois.txt
 RUN pip install -r /tmp/req-malinois.txt
 
 # 4) Navigateur Playwright (Firefox headless) pour les sites à captcha invisible
-RUN python3 -m playwright install --with-deps firefox
+RUN python3 -m playwright install --with-deps firefox \
+ && rm -rf /var/lib/apt/lists/*
 
 # 5) Le code : tout le fork (autovisit.py + overlay) dans /opt/tracker-autovisit
 WORKDIR /opt/tracker-autovisit

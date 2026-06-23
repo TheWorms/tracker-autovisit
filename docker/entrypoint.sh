@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MALINOIS – entrypoint conteneur : prépare les données persistantes, planifie la
+# Malinois – entrypoint conteneur : prépare les données persistantes, planifie la
 # collecte, puis passe la main à supervisord (nginx + web-api + cron).
 set -e
 
@@ -35,5 +35,5 @@ if ! crontab -l 2>/dev/null | grep -q "autovisit.py"; then
   echo "[entrypoint] crontab par défaut posé : ${CRON_SCHEDULE:-0 6 * * *}"
 fi
 
-echo "[entrypoint] MALINOIS prêt — démarrage des services."
+echo "[entrypoint] Malinois prêt — démarrage des services."
 exec "$@"

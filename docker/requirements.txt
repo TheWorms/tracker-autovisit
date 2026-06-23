@@ -1,5 +1,5 @@
-# Dépendances installées dans l'image MALINOIS.
-# -- couche MALINOIS (web-api.py + outils) --
+# Dépendances installées dans l'image Malinois.
+# -- couche Malinois (web-api.py + outils) --
 pillow
 pyotp
 requests

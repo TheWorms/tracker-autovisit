@@ -1,10 +1,10 @@
-# MALINOIS
+# Malinois
 
 > Tableau de bord web pour l'outil [`tracker-autovisit`](https://github.com/lol-powa/tracker-autovisit) :
-> un cron visite chaque tracker privé, extrait les stats par **regex**, et MALINOIS les
+> un cron visite chaque tracker privé, extrait les stats par **regex**, et Malinois les
 > affiche dans un tableau triable avec un **inspecteur** pour éditer les regex en direct.
 >
-> Fork : Gusdezup → lol-powa → MALINOIS. Toute la couche dashboard est ajoutée par-dessus l'outil amont.
+> Fork : [Gusdezup/Autovisit](https://github.com/Gusdezup/Autovisit) → [lol-powa/tracker-autovisit](https://github.com/lol-powa/tracker-autovisit) → Malinois. La couche dashboard est ajoutée par-dessus l'outil amont.
 
 ---
 
@@ -14,7 +14,7 @@ Le tableau de bord regroupe les stats de tous tes trackers privés sur une seule
 upload, download, ratio, bonus/points, en seed, rang et dernière connexion. Chaque colonne
 est triable et chaque ligne propose des actions rapides (revisite, édition, inspecteur, suppression).
 
-![Tableau de bord MALINOIS](docs/img/dashboard.png)
+![Tableau de bord Malinois](docs/img/dashboard.png)
 
 ---
 
@@ -36,7 +36,7 @@ sans dépendre d'un conteneur LXC. Tous les chemins internes sont fournis par l'
 les **données** vivent dans un volume monté (`./data`).
 
 > ⚠️ Construis l'image depuis la **racine de ton fork `tracker-autovisit`** : c'est là que vit
-> `autovisit.py` (l'outil de collecte), que le `Dockerfile` embarque avec la couche MALINOIS.
+> `autovisit.py` (l'outil de collecte), que le `Dockerfile` embarque avec la couche Malinois.
 
 ```bash
 # Depuis la racine de ton fork tracker-autovisit (qui contient autovisit.py)
@@ -44,7 +44,7 @@ cp .env.example .env          # ajuste le port, la TZ, le planning cron si besoi
 docker compose up -d --build
 ```
 
-Le dashboard est ensuite accessible sur `http://localhost:8080` (port configurable via `MALINOIS_PORT`).
+Le dashboard est ensuite accessible sur `http://localhost:8080` (port configurable via `Malinois_PORT`).
 
 Deux conteneurs sont lancés :
 
@@ -61,7 +61,7 @@ Deux conteneurs sont lancés :
 
 ### Ajouter un site
 
-Le bouton **+** ouvre la recherche de trackers : tape le nom, MALINOIS propose les trackers
+Le bouton **+** ouvre la recherche de trackers : tape le nom, Malinois propose les trackers
 connus de sa base avec leur plateforme détectée.
 
 ![Ajouter un site](docs/img/add_site.png)
@@ -97,7 +97,7 @@ Définies dans `.env` (copié depuis `.env.example`) :
 
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `MALINOIS_PORT` | `8080` | Port HTTP publié sur l'hôte |
+| `Malinois_PORT` | `8080` | Port HTTP publié sur l'hôte |
 | `TZ` | `Europe/Paris` | Fuseau horaire (cron + Byparr) |
 | `CRON_SCHEDULE` | `0 6 * * *` | Planning par défaut de la collecte (modifiable dans l'UI) |
 | `BYPARR_IMAGE` | `ghcr.io/thephaseless/byparr:latest` | Image du solveur (FlareSolverr possible) |
@@ -152,16 +152,20 @@ Dans ce mode, nginx/systemd/cron sont configurés directement sur la cible (le f
 
 ## Crédits & remerciements
 
-MALINOIS est une **surcouche dashboard** : tout le travail de collecte (visite des trackers,
+Malinois est une **surcouche dashboard** : tout le travail de collecte (visite des trackers,
 authentification, extraction) revient à l'outil amont. Merci à ses auteurs, sans qui rien de
 tout ceci n'existerait.
 
-- **Gusdezup** — auteur original de `tracker-autovisit`.
-- **lol-powa** — fork repris et maintenu (`lol-powa/tracker-autovisit`), base de ce projet.
-- **MALINOIS** — couche web ajoutée par-dessus : dashboard, inspecteur de regex, authentification,
-  icônes, et packaging Docker.
+- **Auteur original** — [Gusdezup/Autovisit](https://github.com/Gusdezup/Autovisit).
+- **Fork divergent** — [lol-powa/tracker-autovisit](https://github.com/lol-powa/tracker-autovisit), base de ce projet.
+- **Malinois** — couche web ajoutée par-dessus : dashboard, inspecteur de regex, authentification,
+  icônes et packaging Docker.
 
 Reporte-toi aux dépôts amont pour la **licence** et les conditions d'utilisation de l'outil de collecte.
+
+Outils tiers utilisés par la collecte : [Byparr](https://github.com/ThePhaseless/Byparr) (ou
+[FlareSolverr](https://github.com/FlareSolverr/FlareSolverr)) pour le challenge Cloudflare,
+[Playwright](https://playwright.dev/) pour les captchas invisibles.
 
 ---
 

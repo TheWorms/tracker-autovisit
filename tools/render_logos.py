@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# MALINOIS : décode les logos (base64) du manifeste vers <WEBROOT>/.logos/<id>.png.
+# Malinois : décode les logos (base64) du manifeste vers <WEBROOT>/.logos/<id>.png.
 # Build-time : les données du manifeste sont embarquées dans l'image.
 import sys, os, json, base64
 

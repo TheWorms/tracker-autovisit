@@ -255,8 +255,8 @@
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var MALINOIS_VER="78";
-  try{ console.log("MALINOIS addsite v"+MALINOIS_VER); }catch(e){}
+  var Malinois_VER="78";
+  try{ console.log("Malinois addsite v"+Malinois_VER); }catch(e){}
   function el(html){var d=document.createElement("div");d.innerHTML=html.trim();return d.firstChild;}
   function post(url,obj,timeoutMs){
     var ctrl = (typeof AbortController!=="undefined") ? new AbortController() : null;
@@ -374,7 +374,7 @@
     <div class="lg-card" role="dialog" aria-modal="true" aria-label="Connexion">
       <div class="lg-brand">
         <img class="lg-logo" id="lg-logo" alt="" style="display:none">
-        <div class="lg-name" id="lg-name">MALINOIS</div>
+        <div class="lg-name" id="lg-name">Malinois</div>
         <div class="lg-sub">Accès au tableau de bord</div>
       </div>
       <div class="lg-field"><label>Mot de passe</label><input id="lg-pass" type="password" autocomplete="current-password"></div>
@@ -426,7 +426,7 @@
 
         <section class="cfg-sec active" data-sec="apparence">
           <h2>Apparence & général</h2>
-          <div class="av-field"><label>Nom du dashboard</label><input id="se-name" type="text" placeholder="MALINOIS"></div>
+          <div class="av-field"><label>Nom du dashboard</label><input id="se-name" type="text" placeholder="Malinois"></div>
           <div class="av-field"><label>URL du site (lien du titre, optionnel)</label><input id="se-url" type="text" placeholder="https://…"></div>
           <div class="av-field"><label>Logo / favicon (favicon généré automatiquement)</label>
             <div class="av-fav"><img id="se-favimg" alt="" src="/favicon.png?v=0" onerror="this.style.visibility='hidden'"><input id="se-favfile" type="file" accept="image/*"></div></div>
@@ -1001,7 +1001,7 @@
   function openInspect(slug, name){
     var myGen=++iovGen;
     iov.dataset.slug=slug; iov.dataset.statskind="stats"; iov.dataset.name=name||"";
-    iov.querySelector("#av-iov-title").textContent = "Inspecter — "+name+"  (v"+MALINOIS_VER+")";
+    iov.querySelector("#av-iov-title").textContent = "Inspecter — "+name+"  (v"+Malinois_VER+")";
     iov.querySelector("#av-iov-pre").textContent = "Visite en cours… (connexion au tracker, ~10-30 s)";
     iov.querySelector("#av-iov-info").textContent = "Ceci est exactement ce que le bot reçoit de la page de stats.";
     iov.querySelector("#av-iov-msg").textContent = "";

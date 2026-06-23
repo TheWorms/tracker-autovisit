@@ -32,7 +32,7 @@ ICONDIR = os.path.join(WEBROOT, "icones")
 LOGODIR = os.path.join(WEBROOT, ".logos")
 SETTINGS = os.path.join(BASE, "data", "settings.json")
 LOGFILE = os.path.join(BASE, "data", "logs", "cron.log")
-DEFAULTS = {"name": "MALINOIS", "url": "", "accent": "#2d7a4f",
+DEFAULTS = {"name": "Malinois", "url": "", "accent": "#2d7a4f",
             "dark": False, "cron_hours": 24, "favicon": False, "css": "",
             "col_on": False, "col_bg": "", "col_text": "", "col_border": "", "col_row": ""}
 

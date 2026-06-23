@@ -76,7 +76,7 @@ FAVEOF
 push /tmp/favicon-targets.json /tmp/favicon-targets.json >/dev/null; rm /tmp/favicon-targets.json
 cat > /tmp/fetch_favicons.py << 'FAVPY'
 #!/usr/bin/env python3
-# MALINOIS : recupere le favicon des trackers absents du depot (le conteneur a Internet).
+# Malinois : recupere le favicon des trackers absents du depot (le conteneur a Internet).
 # Sauvegarde en /var/www/autovisit/.logos/<id>.png (64px). Best-effort, jamais bloquant.
 import sys, io, os, re, json
 try:
@@ -174,7 +174,7 @@ ICONDIR = os.path.join(WEBROOT, "icones")
 LOGODIR = os.path.join(WEBROOT, ".logos")
 SETTINGS = os.path.join(BASE, "data", "settings.json")
 LOGFILE = os.path.join(BASE, "data", "logs", "cron.log")
-DEFAULTS = {"name": "MALINOIS", "url": "", "accent": "#2d7a4f",
+DEFAULTS = {"name": "Malinois", "url": "", "accent": "#2d7a4f",
             "dark": False, "cron_hours": 24, "favicon": False, "css": "",
             "col_on": False, "col_bg": "", "col_text": "", "col_border": "", "col_row": ""}
 
@@ -1147,7 +1147,7 @@ push /tmp/web-api.py /opt/tracker-autovisit/web-api.py 700; rm /tmp/web-api.py
 echo "[4b/8] Patches autovisit.py (2FA session + inspection)…"
 cat > /tmp/malinois_patch_2fa.py << 'P2FAEOF'
 #!/usr/bin/env python3
-# MALINOIS : patches additifs pour autovisit.py
+# Malinois : patches additifs pour autovisit.py
 #   1) 2FA a etape separee dans le login hybride du mode session/Cloudflare
 #   2) "inspect" : extract_stats / extract_stats_json deversent ce qu'ils recoivent
 #      dans le fichier pointe par $AUTOVISIT_INSPECT (pour le bouton Inspecter).
@@ -1159,18 +1159,18 @@ P = sys.argv[1] if len(sys.argv) > 1 else "/opt/tracker-autovisit/autovisit.py"
 try:
     src = io.open(P, encoding="utf-8").read()
 except Exception as e:
-    print("MALINOIS patch : lecture impossible (%s) -- ignore" % e); sys.exit(0)
+    print("Malinois patch : lecture impossible (%s) -- ignore" % e); sys.exit(0)
 
 orig = src
 applied = []
 
 # ---- Patch 1 : 2FA session/Cloudflare ----
-if "MALINOIS-2FA-SESSION" not in src:
+if "Malinois-2FA-SESSION" not in src:
     anchor = '            log.info("[" + name + "] Login effectue (HTTP " + str(r_post.status_code) + ")")'
     if anchor in src:
         block = "\n".join([
             "",
-            "            # MALINOIS-2FA-SESSION : etape 2FA separee derriere Cloudflare/cookies",
+            "            # Malinois-2FA-SESSION : etape 2FA separee derriere Cloudflare/cookies",
             '            _t_url = site.get("totp_url"); _t_sec = site.get("totp_secret")',
             "            if _t_url and _t_sec:",
             '                _u = (getattr(r_post, "url", "") or "").lower()',
@@ -1201,15 +1201,15 @@ if "MALINOIS-2FA-SESSION" not in src:
         src = src.replace(anchor, anchor + block, 1)
         applied.append("2FA-session")
     else:
-        print("MALINOIS patch : ancre 2FA introuvable -- 2FA session ignore")
+        print("Malinois patch : ancre 2FA introuvable -- 2FA session ignore")
 
 # ---- Patch 2a : inspect HTML (extract_stats) ----
-if "MALINOIS-INSPECT-HTML" not in src:
+if "Malinois-INSPECT-HTML" not in src:
     a = "def extract_stats(html, patterns):"
     if a in src:
         block = "\n".join([
             "",
-            "    # MALINOIS-INSPECT-HTML",
+            "    # Malinois-INSPECT-HTML",
             "    import os as _os",
             '    _insf = _os.environ.get("AUTOVISIT_INSPECT")',
             "    if _insf and not _os.path.exists(_insf):",
@@ -1221,15 +1221,15 @@ if "MALINOIS-INSPECT-HTML" not in src:
         src = src.replace(a, a + block, 1)
         applied.append("inspect-html")
     else:
-        print("MALINOIS patch : ancre extract_stats introuvable -- inspect HTML ignore")
+        print("Malinois patch : ancre extract_stats introuvable -- inspect HTML ignore")
 
 # ---- Patch 2b : inspect JSON (extract_stats_json) ----
-if "MALINOIS-INSPECT-JSON" not in src:
+if "Malinois-INSPECT-JSON" not in src:
     a = "def extract_stats_json(data, fields):"
     if a in src:
         block = "\n".join([
             "",
-            "    # MALINOIS-INSPECT-JSON",
+            "    # Malinois-INSPECT-JSON",
             "    import os as _os, json as _json",
             '    _insf = _os.environ.get("AUTOVISIT_INSPECT")',
             "    if _insf and not _os.path.exists(_insf):",
@@ -1241,10 +1241,10 @@ if "MALINOIS-INSPECT-JSON" not in src:
         src = src.replace(a, a + block, 1)
         applied.append("inspect-json")
     else:
-        print("MALINOIS patch : ancre extract_stats_json introuvable -- inspect JSON ignore")
+        print("Malinois patch : ancre extract_stats_json introuvable -- inspect JSON ignore")
 
 
-# === Patches backend MALINOIS v78 (additifs, idempotents, best-effort) ===
+# === Patches backend Malinois v78 (additifs, idempotents, best-effort) ===
 # Note : sur un conteneur deja patche a chaud (session v77->v78), le contenu est
 # deja present ; l'ancre "avant patch" ne matchera pas et le patch sera ignore
 # proprement (le code fonctionnel reste en place). Sur un autovisit.py vierge,
@@ -1260,7 +1260,7 @@ if "Stats JSON (api_json) -- lit /api/auth/me" not in src:
     b = ('        # Stats\n'
          '        site_stats = site.get("stats", {})\n'
          '        stats = {}\n'
-         '        # MALINOIS-APIJSON-SESSION : Stats JSON (api_json) -- lit /api/auth/me etc.\n'
+         '        # Malinois-APIJSON-SESSION : Stats JSON (api_json) -- lit /api/auth/me etc.\n'
          '        if site.get("api_json") and site.get("stats_json"):\n'
          '            try:\n'
          '                stats = extract_stats_json(rv.json(), site["stats_json"])\n'
@@ -1271,19 +1271,19 @@ if "Stats JSON (api_json) -- lit /api/auth/me" not in src:
     if a in src:
         src = src.replace(a, b, 1); applied.append("apijson-session")
     else:
-        print("MALINOIS patch : ancre apijson-session introuvable (deja applique ?) -- ignore")
+        print("Malinois patch : ancre apijson-session introuvable (deja applique ?) -- ignore")
 
 # ---- Patch 4 : priorite cookies fichier > FlareSolverr (Nexum) ----
 if "_cf_filtered" not in src:
     a = "        cookies_data = list(cookies_data) + list(cf_cookies)"
-    b = ('        # MALINOIS-CF-COOKIE-PRIORITY : le fichier prime sur FlareSolverr\n'
+    b = ('        # Malinois-CF-COOKIE-PRIORITY : le fichier prime sur FlareSolverr\n'
          '        _file_names = {c.get("name") for c in cookies_data}\n'
          '        _cf_filtered = [c for c in cf_cookies if c.get("name") not in _file_names]\n'
          '        cookies_data = list(cookies_data) + list(_cf_filtered)')
     if a in src:
         src = src.replace(a, b, 1); applied.append("cf-cookie-priority")
     else:
-        print("MALINOIS patch : ancre cf-cookie-priority introuvable (deja applique ?) -- ignore")
+        print("Malinois patch : ancre cf-cookie-priority introuvable (deja applique ?) -- ignore")
 
 # ---- Patch 5 : flux MFA -> stats JSON (C411) ----
 # Remplace le bloc complet : condition + GET + stats_json + verif finale tolerante.
@@ -1300,7 +1300,7 @@ if 'Connexion reussie apres MFA JSON (stats lues)' not in src:
          '                                    log.warning(msg)\n'
          '                                    return False, msg, None')
     if a in src:
-        b = ('                            # MALINOIS-MFA-STATSJSON : lit stats_json dans le flux MFA\n'
+        b = ('                            # Malinois-MFA-STATSJSON : lit stats_json dans le flux MFA\n'
              '                            if verify_url and (custom_keywords or site.get("stats_json") or site.get("extra_stats")):\n'
              '                                _vh = {"Accept": "application/json"}\n'
              '                                if use_curl: _vh["Accept-Encoding"] = "identity"\n'
@@ -1338,10 +1338,10 @@ if 'Connexion reussie apres MFA JSON (stats lues)' not in src:
              '                                return True, msg, None')
         src = src.replace(a, b, 1); applied.append("mfa-statsjson")
     else:
-        print("MALINOIS patch : ancre mfa-statsjson introuvable (deja applique ?) -- ignore")
+        print("Malinois patch : ancre mfa-statsjson introuvable (deja applique ?) -- ignore")
 
 if not applied:
-    print("MALINOIS patch : rien a faire (deja applique)."); sys.exit(0)
+    print("Malinois patch : rien a faire (deja applique)."); sys.exit(0)
 
 bak = P + ".malinois.bak"
 if not os.path.exists(bak):
@@ -1350,10 +1350,10 @@ if not os.path.exists(bak):
 io.open(P, "w", encoding="utf-8").write(src)
 try:
     py_compile.compile(P, doraise=True)
-    print("MALINOIS patch : applique -> " + ", ".join(applied))
+    print("Malinois patch : applique -> " + ", ".join(applied))
 except Exception as e:
     io.open(P, "w", encoding="utf-8").write(orig)
-    print("MALINOIS patch : ECHEC compilation, restaure (%s)." % e); sys.exit(1)
+    print("Malinois patch : ECHEC compilation, restaure (%s)." % e); sys.exit(1)
 P2FAEOF
 push /tmp/malinois_patch_2fa.py /tmp/malinois_patch_2fa.py >/dev/null; rm /tmp/malinois_patch_2fa.py
 run python3 /tmp/malinois_patch_2fa.py /opt/tracker-autovisit/autovisit.py || true
@@ -1361,7 +1361,7 @@ run rm -f /tmp/malinois_patch_2fa.py
 
 echo "[4b/8] Correction des regex de stats (sites existants)…"
 cat > /tmp/malinois_patch_stats.py << 'STATEOF'
-# MALINOIS : corrige les regex de stats des sites deja deployes (sites.d),
+# Malinois : corrige les regex de stats des sites deja deployes (sites.d),
 # d'apres les pages reellement recues par le bot. Fusionne sans toucher au reste (mdp, etc.).
 import json, os, glob
 SITES = "/opt/tracker-autovisit/data/sites.d"
@@ -1711,8 +1711,8 @@ cat > /tmp/addsite.js << 'JSEOF'
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var MALINOIS_VER="78";
-  try{ console.log("MALINOIS addsite v"+MALINOIS_VER); }catch(e){}
+  var Malinois_VER="78";
+  try{ console.log("Malinois addsite v"+Malinois_VER); }catch(e){}
   function el(html){var d=document.createElement("div");d.innerHTML=html.trim();return d.firstChild;}
   function post(url,obj,timeoutMs){
     var ctrl = (typeof AbortController!=="undefined") ? new AbortController() : null;
@@ -1830,7 +1830,7 @@ cat > /tmp/addsite.js << 'JSEOF'
     <div class="lg-card" role="dialog" aria-modal="true" aria-label="Connexion">
       <div class="lg-brand">
         <img class="lg-logo" id="lg-logo" alt="" style="display:none">
-        <div class="lg-name" id="lg-name">MALINOIS</div>
+        <div class="lg-name" id="lg-name">Malinois</div>
         <div class="lg-sub">Accès au tableau de bord</div>
       </div>
       <div class="lg-field"><label>Mot de passe</label><input id="lg-pass" type="password" autocomplete="current-password"></div>
@@ -1882,7 +1882,7 @@ cat > /tmp/addsite.js << 'JSEOF'
 
         <section class="cfg-sec active" data-sec="apparence">
           <h2>Apparence & général</h2>
-          <div class="av-field"><label>Nom du dashboard</label><input id="se-name" type="text" placeholder="MALINOIS"></div>
+          <div class="av-field"><label>Nom du dashboard</label><input id="se-name" type="text" placeholder="Malinois"></div>
           <div class="av-field"><label>URL du site (lien du titre, optionnel)</label><input id="se-url" type="text" placeholder="https://…"></div>
           <div class="av-field"><label>Logo / favicon (favicon généré automatiquement)</label>
             <div class="av-fav"><img id="se-favimg" alt="" src="/favicon.png?v=0" onerror="this.style.visibility='hidden'"><input id="se-favfile" type="file" accept="image/*"></div></div>
@@ -2457,7 +2457,7 @@ cat > /tmp/addsite.js << 'JSEOF'
   function openInspect(slug, name){
     var myGen=++iovGen;
     iov.dataset.slug=slug; iov.dataset.statskind="stats"; iov.dataset.name=name||"";
-    iov.querySelector("#av-iov-title").textContent = "Inspecter — "+name+"  (v"+MALINOIS_VER+")";
+    iov.querySelector("#av-iov-title").textContent = "Inspecter — "+name+"  (v"+Malinois_VER+")";
     iov.querySelector("#av-iov-pre").textContent = "Visite en cours… (connexion au tracker, ~10-30 s)";
     iov.querySelector("#av-iov-info").textContent = "Ceci est exactement ce que le bot reçoit de la page de stats.";
     iov.querySelector("#av-iov-msg").textContent = "";
@@ -3149,7 +3149,7 @@ cat > /tmp/index.html << 'IDXEOF'
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MALINOIS</title>
+<title>Malinois</title>
 <link rel="icon" href="/favicon.png">
 <style>
 :root {
@@ -3343,7 +3343,7 @@ cat > /tmp/index.html << 'IDXEOF'
 <header>
   <div class="brand" id="brand" title="Actualiser">
     <img id="dash-logo" alt="" style="display:none">
-    <span class="brand-name" id="dash-title">MALINOIS</span>
+    <span class="brand-name" id="dash-title">Malinois</span>
   </div>
   <div class="head-right">
     <div class="av-tools" id="tools-slot"></div>
@@ -3422,7 +3422,7 @@ echo "[final] Redemarrage service + controle version…"
 run systemctl restart autovisit-web
 run bash -c 'sleep 1; curl -s http://127.0.0.1:8099/auth/status >/dev/null && echo "  service OK" || echo "  service KO"'
 echo -n "  addsite.js servi : version "
-run bash -c "grep -o 'MALINOIS_VER=\"[0-9]*\"' /var/www/autovisit/addsite.js | head -1 || echo '(marqueur absent — fichier non a jour !)'"
+run bash -c "grep -o 'Malinois_VER=\"[0-9]*\"' /var/www/autovisit/addsite.js | head -1 || echo '(marqueur absent — fichier non a jour !)'"
 echo -n "  web-api.py installe : "
 run bash -c "grep -q '_bg_revisit' /opt/tracker-autovisit/web-api.py && echo 'a jour (async revisit)' || echo 'ANCIEN (pas de _bg_revisit)'"
 echo; echo "=== Termine. Recharge http://${CT_IP}/ (Ctrl+Maj+R). ==="
