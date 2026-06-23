@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy-addsite.sh v78.1 — auth (login + 2FA optionnel), lignes grisees, modale qui suit le theme,
+# deploy-addsite.sh v80 — auth (login + 2FA optionnel), lignes grisees, modale qui suit le theme,
 # auth par cle (Nostradamus), rendu propre, logos, configs git fideles.
 # GARDE-FOU : pour desactiver l'auth si verrouille -> 'rm /opt/tracker-autovisit/data/auth.json' puis 'systemctl restart autovisit-web' (dans le conteneur).
 # set -e RETIRE volontairement : une etape intermediaire qui echoue (patcher,
@@ -174,15 +174,42 @@ ICONDIR = os.path.join(WEBROOT, "icones")
 LOGODIR = os.path.join(WEBROOT, ".logos")
 SETTINGS = os.path.join(BASE, "data", "settings.json")
 LOGFILE = os.path.join(BASE, "data", "logs", "cron.log")
-DEFAULTS = {"name": "Malinois", "url": "", "accent": "#2d7a4f",
-            "dark": False, "cron_hours": 24, "favicon": False, "css": "",
-            "col_on": False, "col_bg": "", "col_text": "", "col_border": "", "col_row": ""}
+DEFAULTS = {"name": "Malinois", "url": "", "accent": "#e0892b",
+            "dark": False, "cron_hours": 24, "favicon": False, "css": ""}
 
 AUTH = os.path.join(BASE, "data", "auth.json")
 COOKIE = "av_session"
 TTL_REMEMBER = 30 * 24 * 3600   # « se souvenir » : 30 jours
 TTL_SESSION = 12 * 3600         # sinon : 12 h (et cookie de session)
 PENDING_2FA = {}   # token -> secret en cours d'activation
+
+# --- Throttle anti brute-force du login (en mémoire, global, remis à zéro au
+#     redémarrage). Clé globale plutôt que par IP : derrière nginx/Docker toutes
+#     les requêtes semblent venir du proxy, une clé IP serait inutile. ---
+_login_fails = []                 # horodatages des échecs récents
+_login_lock = threading.Lock()
+_LOGIN_MAX = 5                    # nb d'échecs tolérés dans la fenêtre
+_LOGIN_WINDOW = 300              # fenêtre glissante (s)
+
+
+def _login_locked():
+    import time
+    now = time.time()
+    with _login_lock:
+        while _login_fails and _login_fails[0] < now - _LOGIN_WINDOW:
+            _login_fails.pop(0)
+        return len(_login_fails) >= _LOGIN_MAX
+
+
+def _login_fail():
+    import time
+    with _login_lock:
+        _login_fails.append(time.time())
+
+
+def _login_reset():
+    with _login_lock:
+        _login_fails.clear()
 
 
 def load_auth():
@@ -213,8 +240,9 @@ def set_password(new):
     salt = secrets.token_hex(16)
     a["pwd_salt"] = salt
     a["pwd_hash"] = _hash(new, salt)
-    if not a.get("server_secret"):
-        a["server_secret"] = secrets.token_hex(32)
+    # Rotation du secret de signature à chaque (re)définition du mot de passe :
+    # invalide toutes les sessions existantes (les anciens cookies ne valident plus).
+    a["server_secret"] = secrets.token_hex(32)
     save_auth(a)
 
 
@@ -645,8 +673,12 @@ class H(BaseHTTPRequestHandler):
         return valid_session(cookie_token(self))
 
     def _gate(self):
-        """True si l'accès est refusé (auth configurée et session invalide)."""
-        return is_configured() and not self._authed()
+        """True si l'accès est refusé. Deux cas : (a) l'auth est configurée mais la
+        session est invalide, ou (b) aucun mot de passe n'est encore défini — on
+        n'expose alors AUCUNE donnée tant que l'admin n'a pas verrouillé l'instance."""
+        if not is_configured():
+            return True
+        return not self._authed()
 
     def log_message(self, *a):
         pass
@@ -721,13 +753,18 @@ class H(BaseHTTPRequestHandler):
         if route == "/auth/login":
             if not is_configured():
                 return self._send(400, {"ok": False, "error": "aucun mot de passe défini"})
+            if _login_locked():
+                return self._send(429, {"ok": False, "error": "Trop de tentatives. Réessaie dans quelques minutes."})
             if not check_password(data.get("password", "")):
+                _login_fail()
                 return self._send(401, {"ok": False, "error": "Mot de passe incorrect"})
             if load_auth().get("twofa"):
                 if not data.get("code"):
                     return self._send(200, {"ok": False, "need_2fa": True})
                 if not check_totp(data.get("code", "")):
+                    _login_fail()
                     return self._send(401, {"ok": False, "need_2fa": True, "error": "Code 2FA invalide"})
+            _login_reset()
             tok = new_session(TTL_REMEMBER if data.get("remember") else TTL_SESSION)
             if data.get("remember"):
                 ck = "%s=%s; Path=/; HttpOnly; SameSite=Lax; Max-Age=%d" % (COOKIE, tok, TTL_REMEMBER)
@@ -747,8 +784,8 @@ class H(BaseHTTPRequestHandler):
                 if not check_password(data.get("current", "")):
                     return self._send(401, {"ok": False, "error": "Mot de passe actuel incorrect"})
             new = (data.get("new") or "").strip()
-            if len(new) < 4:
-                return self._send(400, {"ok": False, "error": "Mot de passe trop court (min 4)"})
+            if len(new) < 8:
+                return self._send(400, {"ok": False, "error": "Mot de passe trop court (min 8)"})
             set_password(new)
             tok = new_session(TTL_REMEMBER)
             ck = "%s=%s; Path=/; HttpOnly; SameSite=Lax; Max-Age=%d" % (COOKIE, tok, TTL_REMEMBER)
@@ -1711,7 +1748,7 @@ cat > /tmp/addsite.js << 'JSEOF'
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var Malinois_VER="78";
+  var Malinois_VER="80";
   try{ console.log("Malinois addsite v"+Malinois_VER); }catch(e){}
   function el(html){var d=document.createElement("div");d.innerHTML=html.trim();return d.firstChild;}
   function post(url,obj,timeoutMs){
@@ -1760,14 +1797,6 @@ cat > /tmp/addsite.js << 'JSEOF'
     settings = s || settings;
     if (dashTitle && settings.name){ dashTitle.textContent = settings.name; document.title = settings.name; }
     if (settings.accent) document.documentElement.style.setProperty("--ok", settings.accent);
-    var root=document.documentElement.style;
-    function setVar(n,v){ if(v) root.setProperty(n,v); else root.removeProperty(n); }
-    if (settings.col_on){
-      setVar("--bg", settings.col_bg); setVar("--text", settings.col_text);
-      setVar("--border", settings.col_border); setVar("--row", settings.col_row);
-    } else {
-      ["--bg","--text","--border","--row"].forEach(function(n){ root.removeProperty(n); });
-    }
     document.documentElement.classList.toggle("av-dark", !!settings.dark);
     var _cb=document.getElementById("av-theme-cb"); if(_cb) _cb.checked = !!settings.dark;
     var _uc=document.getElementById("av-usercss");
@@ -1811,10 +1840,10 @@ cat > /tmp/addsite.js << 'JSEOF'
   .lg-field{margin-bottom:14px}
   .lg-field label{display:block;font-size:12px;color:#8b93a3;margin-bottom:6px}
   .lg-field input{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid #2a3140;background:#11151c;color:#e6eaf1;font-size:15px;outline:none}
-  .lg-field input:focus{border-color:var(--accent,#2d7a4f)}
+  .lg-field input:focus{border-color:var(--ok,#e0892b)}
   .lg-remember{display:flex;align-items:center;gap:8px;font-size:13px;color:#cdd3dd;margin:2px 0 18px;cursor:pointer;user-select:none}
-  .lg-remember input{width:15px;height:15px;accent-color:var(--accent,#2d7a4f)}
-  .lg-btn{width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent,#2d7a4f);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+  .lg-remember input{width:15px;height:15px;accent-color:var(--ok,#e0892b)}
+  .lg-btn{width:100%;padding:12px;border:none;border-radius:10px;background:var(--ok,#e0892b);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
   .lg-btn:disabled{opacity:.6;cursor:default}
   .lg-msg{margin-top:12px;font-size:13px;text-align:center;min-height:16px;color:#8b93a3}
   .lg-msg.ko{color:#e0796f}
@@ -1842,15 +1871,33 @@ cat > /tmp/addsite.js << 'JSEOF'
   </div>`);
   document.body.appendChild(loginOv);
   function LQ(s){ return loginOv.querySelector(s); }
-  function showLogin(){
+  var setupMode=false;   // true = premier lancement : on DÉFINIT le mot de passe au lieu de se connecter
+  function showLogin(setup){
+    setupMode=!!setup;
     var ic=document.querySelector('link[rel*="icon"]'); var lo=LQ("#lg-logo");
     if(ic&&ic.href){ lo.src=ic.href; lo.style.display="block"; }
     var t=(document.title||"").split("—")[0].trim(); if(t) LQ("#lg-name").textContent=t;
+    LQ("#lg-pass").setAttribute("autocomplete", setupMode?"new-password":"current-password");
+    LQ("#lg-go").textContent = setupMode?"Définir le mot de passe":"Se connecter";
+    LQ("#lg-codefield").style.display="none";
+    var rem=LQ("#lg-remember").parentNode; if(rem) rem.style.display=setupMode?"none":"";
+    LQ("#lg-result").className="lg-msg";
+    LQ("#lg-result").textContent=setupMode?"Aucun mot de passe défini : protège l'instance avant d'aller plus loin (8 caractères min).":"";
     loginOv.classList.add("open"); setTimeout(function(){ LQ("#lg-pass").focus(); }, 50);
   }
   function updateAuthBtn(){ bLogout.style.display = (authState.configured && authState.authed) ? "flex" : "none"; }
   function doLogin(){
-    var btn=LQ("#lg-go"); btn.disabled=true; btn.textContent="…";
+    var btn=LQ("#lg-go");
+    if(setupMode){
+      btn.disabled=true; btn.textContent="…";
+      post("/auth/password",{new:LQ("#lg-pass").value}).then(function(j){
+        btn.disabled=false; btn.textContent="Définir le mot de passe";
+        if(j.ok){ loginOv.classList.remove("open"); authState.configured=true; authState.authed=true; setupMode=false; updateAuthBtn(); init2(); }
+        else { LQ("#lg-result").className="lg-msg ko"; LQ("#lg-result").textContent=j.error||"Échec."; }
+      }).catch(function(){ btn.disabled=false; btn.textContent="Définir le mot de passe"; LQ("#lg-result").className="lg-msg ko"; LQ("#lg-result").textContent="Service injoignable."; });
+      return;
+    }
+    btn.disabled=true; btn.textContent="…";
     post("/auth/login",{password:LQ("#lg-pass").value, code:LQ("#lg-code").value, remember:LQ("#lg-remember").checked}).then(function(j){
       btn.disabled=false; btn.textContent="Se connecter";
       if(j.ok){ loginOv.classList.remove("open"); authState.authed=true; updateAuthBtn(); init2(); }
@@ -1892,17 +1939,6 @@ cat > /tmp/addsite.js << 'JSEOF'
               <select id="se-cron"><option value="24">Toutes les 24 h</option><option value="48">Toutes les 48 h</option><option value="72">Toutes les 72 h</option></select></div>
           </div>
           <label class="av-check"><input type="checkbox" id="se-dark"><span>Thème sombre par défaut</span></label>
-          <div class="av-field" style="margin-top:16px">
-            <label class="av-switch-row"><span class="av-switch"><input type="checkbox" id="se-col-on"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>Couleurs personnalisées</span></label>
-            <p class="av-hint" style="margin:4px 0 0">Remplace le thème clair/sombre pour ces éléments. Désactive pour revenir au thème.</p>
-            <div id="se-col-grid" class="av-colgrid">
-              <div class="av-field"><label>Fond</label><input id="se-col-bg" type="color" value="#f8f6f1"></div>
-              <div class="av-field"><label>Texte</label><input id="se-col-text" type="color" value="#1a1a1a"></div>
-              <div class="av-field"><label>Bordures</label><input id="se-col-border" type="color" value="#e2ddd6"></div>
-              <div class="av-field"><label>Lignes de sites</label><input id="se-col-row" type="color" value="#ffffff"></div>
-            </div>
-            <div style="margin-top:10px"><button class="av-btn ghost" type="button" id="se-col-reset">Réinitialiser les couleurs</button></div>
-          </div>
           <div class="av-field" style="margin-top:16px"><label>CSS personnalisé (avancé)</label>
             <textarea id="se-css" rows="7" spellcheck="false" placeholder=":root{ --ok:#2d7a4f; }"></textarea>
             <p class="av-hint">Injecté en direct dans la page. Laisse vide pour le style par défaut.</p></div>
@@ -1964,16 +2000,8 @@ cat > /tmp/addsite.js << 'JSEOF'
     fetch("/settings").then(function(r){return r.json();}).then(function(j){
       var s = (j&&j.ok)?j.settings:settings;
       SQ("#se-name").value = s.name||""; SQ("#se-url").value = s.url||"";
-      SQ("#se-accent").value = s.accent||"#2d7a4f"; SQ("#se-cron").value = String(s.cron_hours||24);
+      SQ("#se-accent").value = s.accent||"#e0892b"; SQ("#se-cron").value = String(s.cron_hours||24);
       SQ("#se-dark").checked = !!s.dark; SQ("#se-css").value = s.css||"";
-      var cs=getComputedStyle(document.documentElement);
-      function cur(v,varname){ return v || (cs.getPropertyValue(varname).trim()) || "#000000"; }
-      SQ("#se-col-on").checked = !!s.col_on;
-      SQ("#se-col-bg").value = cur(s.col_bg,"--bg");
-      SQ("#se-col-text").value = cur(s.col_text,"--text");
-      SQ("#se-col-border").value = cur(s.col_border,"--border");
-      SQ("#se-col-row").value = s.col_row || "#ffffff";
-      SQ("#se-col-grid").classList.toggle("off", !s.col_on);
       var img=SQ("#se-favimg"); img.style.visibility = s.favicon?"visible":"hidden";
       var clogo=SQ("#cfg-logo"); if(s.favicon){ clogo.style.display="block"; clogo.src="/favicon.png?v="+Date.now(); } else clogo.style.display="none";
       if (s.favicon) img.src = "/favicon.png?v="+Date.now();
@@ -1992,23 +2020,7 @@ cat > /tmp/addsite.js << 'JSEOF'
   });
   bSettings.addEventListener("click", openSettings);
   SQ("#cfg-back").addEventListener("click", closeSettings);
-  function previewColors(){
-    var on=SQ("#se-col-on").checked, root=document.documentElement.style;
-    SQ("#se-col-grid").classList.toggle("off", !on);
-    if(on){ root.setProperty("--bg",SQ("#se-col-bg").value); root.setProperty("--text",SQ("#se-col-text").value);
-      root.setProperty("--border",SQ("#se-col-border").value); root.setProperty("--row",SQ("#se-col-row").value); }
-    else { ["--bg","--text","--border","--row"].forEach(function(n){ root.removeProperty(n); }); }
-  }
-  SQ("#se-col-on").addEventListener("change", previewColors);
-  ["se-col-bg","se-col-text","se-col-border","se-col-row"].forEach(function(id){ SQ("#"+id).addEventListener("input", previewColors); });
   SQ("#se-accent").addEventListener("input", function(){ document.documentElement.style.setProperty("--ok", this.value); });
-  SQ("#se-col-reset").addEventListener("click", function(){
-    SQ("#se-col-on").checked=false; previewColors();
-    SQ("#se-col-bg").value="#f8f6f1"; SQ("#se-col-text").value="#1a1a1a"; SQ("#se-col-border").value="#e2ddd6"; SQ("#se-col-row").value="#ffffff";
-    post("/settings",{col_on:false,col_bg:"",col_text:"",col_border:"",col_row:""}).then(function(j){
-      if(j&&j.ok){ applySettings(j.settings); SQ("#se-result").className="av-result show ok"; SQ("#se-result").textContent="Couleurs réinitialisées."; }
-    });
-  });
   sov.querySelectorAll(".cfg-tab").forEach(function(b){
     b.addEventListener("click", function(){ setTab(b.getAttribute("data-tab")); });
   });
@@ -2016,8 +2028,6 @@ cat > /tmp/addsite.js << 'JSEOF'
     var btn=this; btn.disabled=true; btn.textContent="…";
     var payload={name:SQ("#se-name").value.trim(),url:SQ("#se-url").value.trim(),
       accent:SQ("#se-accent").value,dark:SQ("#se-dark").checked,cron_hours:parseInt(SQ("#se-cron").value,10),
-      col_on:SQ("#se-col-on").checked,col_bg:SQ("#se-col-bg").value,col_text:SQ("#se-col-text").value,
-      col_border:SQ("#se-col-border").value,col_row:SQ("#se-col-row").value,
       css:SQ("#se-css").value};
     var f=SQ("#se-favfile").files&&SQ("#se-favfile").files[0];
     var chain = f ? readFile(f).then(function(d){return post("/favicon",{data:d});}) : Promise.resolve({ok:true});
@@ -3132,6 +3142,7 @@ cat > /tmp/addsite.js << 'JSEOF'
     fetch("/auth/status").then(function(r){return r.json();}).then(function(j){
       if(j&&j.ok){ authState={configured:j.configured,twofa:j.twofa,authed:j.authed}; }
       updateAuthBtn();
+      if(!authState.configured){ showLogin(true); return; }
       if(authState.configured && !authState.authed){ showLogin(); return; }
       init2();
     }).catch(function(){ init2(); });
@@ -3368,7 +3379,7 @@ cat > /tmp/index.html << 'IDXEOF'
   <tbody id="tbody"></tbody>
 </table>
 </div>
-<script src="/addsite.js?v=78"></script>
+<script src="/addsite.js?v=80"></script>
 </body>
 </html>
 IDXEOF

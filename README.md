@@ -55,9 +55,17 @@ Deux conteneurs sont lancés :
 
 ### Premier lancement
 
-1. Ouvre le dashboard, puis **Configuration → Sécurité** pour poser un mot de passe
-   (et activer la 2FA si tu veux) — fais-le tout de suite si le service est exposé au-delà de `localhost`.
+1. Ouvre le dashboard : tant qu'aucun mot de passe n'est défini, l'instance est
+   **verrouillée** — un écran « Définir le mot de passe » s'affiche et aucune donnée
+   n'est servie tant que tu n'as pas choisi un mot de passe (8 caractères minimum).
+   Active ensuite la 2FA si tu veux dans **Configuration → Sécurité**.
 2. Ajoute tes trackers (voir ci-dessous) ou restaure ton dossier `data/` existant dans le volume.
+
+> **Sécurité de l'auth.** Le mot de passe est haché (PBKDF2-SHA256, 120 000 itérations,
+> sel aléatoire) ; la session est un jeton signé HMAC avec expiration. Changer le mot de
+> passe **invalide toutes les autres sessions** (rotation du secret de signature). Le login
+> est throttlé (5 échecs en 5 min → temporisation). Le cookie est `HttpOnly; SameSite=Lax`
+> (ajoute `Secure` si tu sers en HTTPS derrière un reverse proxy).
 
 ### Ajouter un site
 

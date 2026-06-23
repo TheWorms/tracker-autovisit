@@ -32,15 +32,42 @@ ICONDIR = os.path.join(WEBROOT, "icones")
 LOGODIR = os.path.join(WEBROOT, ".logos")
 SETTINGS = os.path.join(BASE, "data", "settings.json")
 LOGFILE = os.path.join(BASE, "data", "logs", "cron.log")
-DEFAULTS = {"name": "Malinois", "url": "", "accent": "#2d7a4f",
-            "dark": False, "cron_hours": 24, "favicon": False, "css": "",
-            "col_on": False, "col_bg": "", "col_text": "", "col_border": "", "col_row": ""}
+DEFAULTS = {"name": "Malinois", "url": "", "accent": "#e0892b",
+            "dark": False, "cron_hours": 24, "favicon": False, "css": ""}
 
 AUTH = os.path.join(BASE, "data", "auth.json")
 COOKIE = "av_session"
 TTL_REMEMBER = 30 * 24 * 3600   # « se souvenir » : 30 jours
 TTL_SESSION = 12 * 3600         # sinon : 12 h (et cookie de session)
 PENDING_2FA = {}   # token -> secret en cours d'activation
+
+# --- Throttle anti brute-force du login (en mémoire, global, remis à zéro au
+#     redémarrage). Clé globale plutôt que par IP : derrière nginx/Docker toutes
+#     les requêtes semblent venir du proxy, une clé IP serait inutile. ---
+_login_fails = []                 # horodatages des échecs récents
+_login_lock = threading.Lock()
+_LOGIN_MAX = 5                    # nb d'échecs tolérés dans la fenêtre
+_LOGIN_WINDOW = 300              # fenêtre glissante (s)
+
+
+def _login_locked():
+    import time
+    now = time.time()
+    with _login_lock:
+        while _login_fails and _login_fails[0] < now - _LOGIN_WINDOW:
+            _login_fails.pop(0)
+        return len(_login_fails) >= _LOGIN_MAX
+
+
+def _login_fail():
+    import time
+    with _login_lock:
+        _login_fails.append(time.time())
+
+
+def _login_reset():
+    with _login_lock:
+        _login_fails.clear()
 
 
 def load_auth():
@@ -71,8 +98,9 @@ def set_password(new):
     salt = secrets.token_hex(16)
     a["pwd_salt"] = salt
     a["pwd_hash"] = _hash(new, salt)
-    if not a.get("server_secret"):
-        a["server_secret"] = secrets.token_hex(32)
+    # Rotation du secret de signature à chaque (re)définition du mot de passe :
+    # invalide toutes les sessions existantes (les anciens cookies ne valident plus).
+    a["server_secret"] = secrets.token_hex(32)
     save_auth(a)
 
 
@@ -503,8 +531,12 @@ class H(BaseHTTPRequestHandler):
         return valid_session(cookie_token(self))
 
     def _gate(self):
-        """True si l'accès est refusé (auth configurée et session invalide)."""
-        return is_configured() and not self._authed()
+        """True si l'accès est refusé. Deux cas : (a) l'auth est configurée mais la
+        session est invalide, ou (b) aucun mot de passe n'est encore défini — on
+        n'expose alors AUCUNE donnée tant que l'admin n'a pas verrouillé l'instance."""
+        if not is_configured():
+            return True
+        return not self._authed()
 
     def log_message(self, *a):
         pass
@@ -579,13 +611,18 @@ class H(BaseHTTPRequestHandler):
         if route == "/auth/login":
             if not is_configured():
                 return self._send(400, {"ok": False, "error": "aucun mot de passe défini"})
+            if _login_locked():
+                return self._send(429, {"ok": False, "error": "Trop de tentatives. Réessaie dans quelques minutes."})
             if not check_password(data.get("password", "")):
+                _login_fail()
                 return self._send(401, {"ok": False, "error": "Mot de passe incorrect"})
             if load_auth().get("twofa"):
                 if not data.get("code"):
                     return self._send(200, {"ok": False, "need_2fa": True})
                 if not check_totp(data.get("code", "")):
+                    _login_fail()
                     return self._send(401, {"ok": False, "need_2fa": True, "error": "Code 2FA invalide"})
+            _login_reset()
             tok = new_session(TTL_REMEMBER if data.get("remember") else TTL_SESSION)
             if data.get("remember"):
                 ck = "%s=%s; Path=/; HttpOnly; SameSite=Lax; Max-Age=%d" % (COOKIE, tok, TTL_REMEMBER)
@@ -605,8 +642,8 @@ class H(BaseHTTPRequestHandler):
                 if not check_password(data.get("current", "")):
                     return self._send(401, {"ok": False, "error": "Mot de passe actuel incorrect"})
             new = (data.get("new") or "").strip()
-            if len(new) < 4:
-                return self._send(400, {"ok": False, "error": "Mot de passe trop court (min 4)"})
+            if len(new) < 8:
+                return self._send(400, {"ok": False, "error": "Mot de passe trop court (min 8)"})
             set_password(new)
             tok = new_session(TTL_REMEMBER)
             ck = "%s=%s; Path=/; HttpOnly; SameSite=Lax; Max-Age=%d" % (COOKIE, tok, TTL_REMEMBER)
