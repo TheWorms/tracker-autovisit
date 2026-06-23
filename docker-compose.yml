@@ -15,6 +15,10 @@ services:
       # Icônes custom uploadées via l'UI (rangées sous ./data pour une sauvegarde unique)
       - ./data/_webicones:/var/www/autovisit/icones
 
+  # Solveur Cloudflare — Byparr par défaut. Alternative FlareSolverr commentée plus bas.
+  # Astuce : pour lancer FlareSolverr SANS rien décommenter, surcharge simplement l'image
+  # (les variables HOST/PORT/LOG_LEVEL sont communes aux deux solveurs) :
+  #   BYPARR_IMAGE=ghcr.io/flaresolverr/flaresolverr:latest docker compose up -d
   byparr:
     image: ${BYPARR_IMAGE:-ghcr.io/thephaseless/byparr:latest}
     container_name: malinois-byparr
@@ -30,3 +34,21 @@ services:
     network_mode: "service:malinois"
     depends_on:
       - malinois
+
+  # --- Alternative : FlareSolverr (même API /v1, même port 8191 que Byparr) ---
+  # ⚠️ Byparr et FlareSolverr écoutent TOUS LES DEUX sur 8191 : n'en garde qu'UN actif.
+  #    Pour basculer : commente le service "byparr" ci-dessus, puis décommente ce bloc.
+  # flaresolverr:
+  #   image: ${FLARESOLVERR_IMAGE:-ghcr.io/flaresolverr/flaresolverr:latest}
+  #   container_name: malinois-flaresolverr
+  #   restart: unless-stopped
+  #   shm_size: "2gb"
+  #   environment:
+  #     - TZ=${TZ:-Europe/Paris}
+  #     - HOST=127.0.0.1
+  #     - PORT=8191
+  #     - LOG_LEVEL=info
+  #   # Même pile réseau que malinois -> 127.0.0.1:8191 (cf_solver), zéro modif côté sites.
+  #   network_mode: "service:malinois"
+  #   depends_on:
+  #     - malinois

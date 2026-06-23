@@ -51,7 +51,10 @@ Deux conteneurs sont lancés :
 - **`malinois`** : nginx + l'API web + le cron de collecte, dans une seule image.
 - **`byparr`** : le solveur Cloudflare. Il partage la pile réseau de `malinois`, donc il reste
   joignable sur `127.0.0.1:8191` — exactement comme l'attendent les configs de site existantes
-  (`cf_solver`), sans aucune modification à faire.
+  (`cf_solver`), sans aucune modification à faire. [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr)
+  est interchangeable (même API `/v1`, même port) : soit en surchargeant `BYPARR_IMAGE`, soit via le
+  service `flaresolverr` fourni commenté dans le `docker-compose.yml`. Les deux solveurs partageant le
+  port 8191, on n'en lance qu'un à la fois.
 
 ### Premier lancement
 
