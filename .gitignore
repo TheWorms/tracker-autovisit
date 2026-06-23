@@ -1,50 +1,21 @@
-# Credentials — ne jamais publier
-sites.json
+# Données sensibles — JAMAIS commitées
+data/config.json
+data/sites.d/*.json
+data/cookies/*.json
+data/auth.json
+data/status.json
+data/.sitebak/
+data/logs/
 
-# Configurations personnelles de sites (ne pas commiter)
+# Notes perso de configuration
 SITES.md
-cookies/
-cookies/*.json
-status.json
 
-# Logs
-logs/
+# Sauvegardes
+*.tgz
+*.bak
+*.bak-*
+*.malinois.bak
 
 # Python
 __pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-venv/
-env/
-
-# Environnement / secrets
-.env
-.env.*
-*.local
-
-# IDE / éditeurs
-.vscode/
-.idea/
-*.swp
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs et bases locales
-*.log
-*.sqlite
-*.sqlite3
-
-# Fichiers de test temporaires
-/tmp/test_*.py
-
-# Données runtime
-data/
-downloads/
-
-# Backups locaux
-*.bak
-*.bak.*
+*.pyc
