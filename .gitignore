@@ -1,21 +1,23 @@
-# Données sensibles — JAMAIS commitées
-data/config.json
-data/sites.d/*.json
-data/cookies/*.json
+# Environnement
+.env
+
+# Données runtime & secrets (volume Docker / install classique)
+data/sites.d/
+data/cookies/
+data/logs/
+data/.sitebak/
+data/.statsbak/
+data/_webicones/
 data/auth.json
 data/status.json
-data/.sitebak/
-data/logs/
-
-# Notes perso de configuration
-SITES.md
-
-# Sauvegardes
-*.tgz
-*.bak
-*.bak-*
-*.malinois.bak
+data/settings.json
 
 # Python
 __pycache__/
 *.pyc
+
+# Divers
+*.zip
+*.swp
+
+# NB : data/logos-manifest.json et data/favicon-targets.json sont VERSIONNÉS (nécessaires au build).

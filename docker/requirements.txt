@@ -1,0 +1,11 @@
+# Dépendances installées dans l'image MALINOIS.
+# -- couche MALINOIS (web-api.py + outils) --
+pillow
+pyotp
+requests
+# -- runtime de tracker-autovisit (collecte) --
+curl_cffi
+playwright
+# NB : les dépendances propres à TON fork autovisit.py (bs4, lxml, httpx...) doivent
+#      figurer dans le requirements.txt à la racine du dépôt : le Dockerfile l'installe
+#      automatiquement s'il est présent.

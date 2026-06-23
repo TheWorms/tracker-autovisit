@@ -1,0 +1,18 @@
+.git
+.gitignore
+.env
+docs/
+*.zip
+__pycache__/
+*.pyc
+# Données runtime / secrets : ne JAMAIS embarquer dans l'image
+data/sites.d/
+data/cookies/
+data/logs/
+data/.sitebak/
+data/.statsbak/
+data/_webicones/
+data/auth.json
+data/status.json
+data/settings.json
+# (data/logos-manifest.json et data/favicon-targets.json sont volontairement GARDÉS)

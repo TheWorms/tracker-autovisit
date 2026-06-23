@@ -1,0 +1,32 @@
+services:
+  malinois:
+    build: .
+    image: malinois:latest
+    container_name: malinois
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-Europe/Paris}
+      - CRON_SCHEDULE=${CRON_SCHEDULE:-0 6 * * *}
+    ports:
+      - "${MALINOIS_PORT:-8080}:80"
+    volumes:
+      # Toutes les données persistantes (configs sites, cookies, logs, status, sauvegardes)
+      - ./data:/opt/tracker-autovisit/data
+      # Icônes custom uploadées via l'UI (rangées sous ./data pour une sauvegarde unique)
+      - ./data/_webicones:/var/www/autovisit/icones
+
+  byparr:
+    image: ${BYPARR_IMAGE:-ghcr.io/thephaseless/byparr:latest}
+    container_name: malinois-byparr
+    restart: unless-stopped
+    shm_size: "2gb"
+    environment:
+      - TZ=${TZ:-Europe/Paris}
+      - HOST=127.0.0.1
+      - PORT=8191
+      - LOG_LEVEL=info
+    # Partage la pile réseau de malinois : Byparr écoute sur 127.0.0.1:8191,
+    # exactement comme l'attendent les configs sites.d (cf_solver) -> zéro modif.
+    network_mode: "service:malinois"
+    depends_on:
+      - malinois

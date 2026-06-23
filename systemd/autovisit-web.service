@@ -1,0 +1,11 @@
+[Unit]
+Description=tracker-autovisit web API (gestion des sites + parametres + auth)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/tracker-autovisit/web-api.py
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
