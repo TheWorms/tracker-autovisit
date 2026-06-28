@@ -245,6 +245,44 @@ if "malinois-cookie-playwright" not in src:
     else:
         print("MALINOIS patch : ancre new_page introuvable -- cookie-playwright ignore")
 
+# ---- Patch : detection challenge Cloudflare (mode session + verify Playwright) ----
+if "MALINOIS-CF-CHALLENGE" not in src:
+    _cf_done = []
+    a_sess = '    body_lower = rv.text.lower()\n\n    # Stats'
+    blk4 = "\n".join([
+        '    body_lower = rv.text.lower()',
+        '    # MALINOIS-CF-CHALLENGE : page de defi Cloudflare -> echec (evite un faux OK + stats N/A)',
+        '    if ("_cf_chl_opt" in rv.text or "challenge-platform" in body_lower',
+        '            or "cf-turnstile" in body_lower or "cf_chl_" in body_lower',
+        '            or "/cdn-cgi/challenge" in body_lower):',
+        '        _cfmsg = "ECHEC [" + name + "] Challenge Cloudflare detecte (page de defi au lieu du contenu)"',
+        '        log.warning(_cfmsg)',
+        '        return False, _cfmsg, None',
+        '',
+        '    # Stats',
+    ])
+    if a_sess in src:
+        src = src.replace(a_sess, blk4, 1); _cf_done.append("session")
+    a_pw = '        body_lower = rv.text.lower()\n\n        site_stats = site.get("stats", {})'
+    blk8 = "\n".join([
+        '        body_lower = rv.text.lower()',
+        '        # MALINOIS-CF-CHALLENGE : page de defi Cloudflare -> echec',
+        '        if ("_cf_chl_opt" in rv.text or "challenge-platform" in body_lower',
+        '                or "cf-turnstile" in body_lower or "cf_chl_" in body_lower',
+        '                or "/cdn-cgi/challenge" in body_lower):',
+        '            _cfmsg = "ECHEC [" + name + "] Challenge Cloudflare detecte (page de defi au lieu du contenu)"',
+        '            log.warning(_cfmsg)',
+        '            return False, _cfmsg, None',
+        '',
+        '        site_stats = site.get("stats", {})',
+    ])
+    if a_pw in src:
+        src = src.replace(a_pw, blk8, 1); _cf_done.append("playwright-verify")
+    if _cf_done:
+        applied.append("cf-challenge[" + "+".join(_cf_done) + "]")
+    else:
+        print("MALINOIS patch : ancres CF-challenge introuvables -- ignore")
+
 if not applied:
     print("MALINOIS patch : rien a faire (deja applique)."); sys.exit(0)
 

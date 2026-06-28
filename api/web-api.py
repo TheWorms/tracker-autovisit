@@ -349,6 +349,7 @@ _revisiting_lock = threading.Lock()
 def _bg_revisit(slug, name):
     try:
         regenerate_one(name)
+        check_and_alert()   # evalue les alertes comme _bg_refresh (sinon : notif navigateur sans mail/telegram)
     finally:
         with _revisiting_lock:
             _revisiting.discard(slug)
@@ -619,7 +620,7 @@ def _alert_log(msg):
 def read_alerts():
     base = {"email": {}, "telegram": {}, "webhook": {}, "browser": {"enabled": False},
             "on_failure": False, "on_recovery": False, "on_each_run": False, "on_stats_na": False,
-            "stats_na_fields": ["upload"]}
+            "stats_na_fields": ["upload"], "template": "", "header": "", "footer": ""}
     try:
         d = json.load(open(ALERTS_FILE, encoding="utf-8"))
         if isinstance(d, dict):
@@ -677,6 +678,10 @@ def _update_alerts(incoming):
             cur["stats_na_fields"] = [k for k in _f if k in _allowed] or ["upload"]
     if "browser" in incoming:
         cur["browser"] = {"enabled": bool((incoming.get("browser") or {}).get("enabled"))}
+    if incoming.get("tpl"):
+        cur["template"] = incoming.get("template", "") or ""
+        cur["header"] = incoming.get("header", "") or ""
+        cur["footer"] = incoming.get("footer", "") or ""
     write_alerts(cur)
     return cur
 
@@ -741,14 +746,44 @@ def _send_webhook(wh, subject, body):
 _SENDERS = {"email": _send_email, "telegram": _send_telegram, "webhook": _send_webhook}
 
 
-def send_alert(subject, body):
-    """Envoie via tous les canaux actives. Retourne [(canal, ok, erreur)]."""
+def _fmt_stats(st):
+    """Formate les stats d'un site en chaine lisible pour la variable {stats}."""
+    if isinstance(st, dict):
+        st = {k: v for k, v in st.items() if not str(k).startswith("_malinois")}
+        if not st:
+            return "N/A"
+        return " | ".join("%s: %s" % (k, v) for k, v in st.items())
+    if isinstance(st, str):
+        return st.strip() or "N/A"
+    return "N/A"
+
+
+def _render_tpl(tpl, ctx):
+    """Remplace les variables {cle} du gabarit par les valeurs de ctx (remplacement
+    simple, n'echoue pas sur une accolade isolee, contrairement a str.format)."""
+    out = tpl
+    for k, v in (ctx or {}).items():
+        out = out.replace("{" + k + "}", str(v))
+    return out
+
+
+def send_alert(subject, body, ctx=None):
+    """Envoie via tous les canaux actives. UN SEUL modele commun (entete + corps +
+    pied, au niveau racine de la config) est rendu avec ctx puis envoye tel quel a
+    tous les canaux. Corps = gabarit si defini, sinon le message par defaut.
+    Retourne [(canal, ok, erreur)]."""
     cfg = read_alerts()
+    tpl = (cfg.get("template") or "").strip()
+    core = _render_tpl(tpl, ctx) if tpl else body
+    hdr = _render_tpl(cfg.get("header") or "", ctx).strip()
+    ftr = _render_tpl(cfg.get("footer") or "", ctx).strip()
+    parts = [p for p in (hdr, core, ftr) if p]
+    msg = "\n\n".join(parts) if parts else body
     res = []
     for ch in ("email", "telegram", "webhook"):
         c = cfg.get(ch) or {}
         if c.get("enabled"):
-            ok, err = _SENDERS[ch](c, subject, body)
+            ok, err = _SENDERS[ch](c, subject, msg)
             res.append((ch, ok, err))
             _alert_log("envoi %s [%s] : %s" % (ch, subject, "OK" if ok else ("ECHEC — " + err)))
     return res
@@ -779,19 +814,31 @@ def check_and_alert():
         prev = cfg.get("_last_failed") or []
         new_fail = [f for f in failed if f not in prev]
         recovered = [f for f in prev if f not in failed]
-        msgs = []
+        import datetime as _dtmod
+        _now = _dtmod.datetime.now()
+        _date = _now.strftime("%d/%m/%Y"); _heure = _now.strftime("%H:%M")
+        by_name = {s.get("name", s.get("slug", "?")): s for s in sites}
+        def _stats_of(nm):
+            s = by_name.get(nm) or {}
+            return _fmt_stats(s.get("stats") or s.get("stats_json") or s.get("extra_stats") or {})
+        def _emit(default_body, extra):
+            ctx = {"date": _date, "heure": _heure, "total": total, "nb_echec": len(failed),
+                   "sites": (", ".join(failed) or "aucun"), "message": default_body}
+            ctx.update(extra)
+            send_alert("Malinois : alerte visite", default_body, ctx)
         if cfg.get("on_each_run"):
             resume = "Resume visite : %d site(s), %d en echec." % (total, len(failed))
             if failed:
                 resume += " En echec : " + ", ".join(failed) + "."
-            msgs.append(resume)
+            _emit(resume, {"site": "(tous)", "statut": "résumé", "stats": ""})
         if cfg.get("on_failure") and new_fail:
-            m = "Nouveaux sites en echec : " + ", ".join(new_fail) + "."
-            if len(failed) > len(new_fail):
-                m += " (total en echec : " + ", ".join(failed) + ")"
-            msgs.append(m)
+            for _nm in new_fail:
+                _emit("Site en echec : %s." % _nm,
+                      {"site": _nm, "statut": "en échec", "stats": _stats_of(_nm)})
         if cfg.get("on_recovery") and recovered:
-            msgs.append("Sites retablis (de nouveau OK) : " + ", ".join(recovered) + ".")
+            for _nm in recovered:
+                _emit("Site retabli (de nouveau OK) : %s." % _nm,
+                      {"site": _nm, "statut": "rétabli", "stats": _stats_of(_nm)})
         na_sites = []
         if cfg.get("on_stats_na"):
             _MISS = object()
@@ -826,11 +873,10 @@ def check_and_alert():
             na_sites = sorted(na_sites)
             new_na = [n for n in na_sites if n not in (cfg.get("_last_stats_na") or [])]
             if new_na:
-                _parts = ["%s (%s)" % (n, ", ".join(_detail[n])) for n in new_na]
-                msgs.append("Statistiques non recuperees sur : " + ", ".join(_parts)
-                            + ". Probablement une erreur de recuperation/renouvellement de cookie -- verifie ou reimporte les cookies de session.")
-        for m in msgs:
-            send_alert("Malinois : alerte visite", m)
+                for _nm in new_na:
+                    _emit("Statistiques non recuperees sur %s (%s). Probablement une erreur de recuperation/renouvellement de cookie -- verifie ou reimporte les cookies de session." % (_nm, ", ".join(_detail[_nm])),
+                          {"site": _nm, "statut": "stats N/A", "stats": _stats_of(_nm)})
+        # (les envois sont faits au fil de l'eau par _emit ci-dessus, par site)
         changed = False
         if failed != prev:
             cfg["_last_failed"] = failed; changed = True
@@ -956,7 +1002,7 @@ def gen_selfsigned(opts):
 
 def _nginx_locations():
     api = ("test|confirm|cancel|delete|toggle|sites|site|settings|favicon|logosync|inspect|"
-           "logs|favsync|refreshall|refreshstate|revisit|revisitstate|sitestats|siterestore|cron")
+           "logs|logsclear|favsync|refreshall|refreshstate|revisit|revisitstate|sitestats|siterestore|cron")
     return (
         "    add_header X-Frame-Options DENY;\n"
         "    add_header X-Content-Type-Options nosniff;\n"
@@ -1574,6 +1620,26 @@ class H(BaseHTTPRequestHandler):
                 return self._send(400, {"ok": False, "error": str(e)})
             return self._send(200, {"ok": True, "slug": slug, "keys": sorted((d.get("stats") or {}).keys())})
 
+        if route == "/logsclear":
+            # Vide (tronque) le journal selectionne. data/logs/* + letsencrypt.log
+            # (journal systeme de certbot ; service en root, certbot le realimente).
+            logsdir = os.path.join(BASE, "data", "logs")
+            want = os.path.basename(data.get("file", "") or "")
+            if not want:
+                return self._send(400, {"ok": False, "error": "Aucun journal indique."})
+            if want == "letsencrypt.log":
+                path = "/var/log/letsencrypt/letsencrypt.log"
+            else:
+                path = os.path.join(logsdir, want)
+                if os.path.realpath(os.path.dirname(path)) != os.path.realpath(logsdir):
+                    return self._send(400, {"ok": False, "error": "Chemin de journal invalide."})
+            try:
+                if os.path.isfile(path):
+                    with io.open(path, "w", encoding="utf-8") as f:
+                        f.write("")
+                return self._send(200, {"ok": True, "file": want})
+            except Exception as e:
+                return self._send(500, {"ok": False, "error": "Vidage impossible : %s" % e})
         if route == "/siterestore":
             # Restaure la config de stats depuis la derniere sauvegarde
             # (data/.statsbak/<slug>.json), ecrite avant le dernier enregistrement.
