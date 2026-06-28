@@ -7,9 +7,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
     TZ=Europe/Paris
 
-# 1) Paquets système : nginx, cron, supervisor, tzdata + utilitaires
+# 1) Paquets système : nginx, cron, tzdata + utilitaires
+#    NB : supervisor n'est PAS installé ici via apt (cf. docker/requirements.txt) — sinon le
+#    symlink python3->3.12 ci-dessous casse supervisord (metadata apt sous 3.11).
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        nginx cron supervisor tzdata ca-certificates curl procps \
+        nginx cron tzdata ca-certificates curl procps \
  && rm -f /etc/nginx/sites-enabled/default
 
 # 2) python3 dans /usr/bin pour le shebang appelé par cron (#!/usr/bin/env python3)
@@ -58,4 +60,4 @@ RUN cp docker/nginx.conf /etc/nginx/sites-available/autovisit \
 
 EXPOSE 80
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

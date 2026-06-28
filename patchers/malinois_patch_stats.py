@@ -1,4 +1,4 @@
-# Malinois : corrige les regex de stats des sites deja deployes (sites.d),
+# MALINOIS : corrige les regex de stats des sites deja deployes (sites.d),
 # d'apres les pages reellement recues par le bot. Fusionne sans toucher au reste (mdp, etc.).
 import json, os, glob
 SITES = "/opt/tracker-autovisit/data/sites.d"

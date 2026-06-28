@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Malinois</title>
+<title>MALINOIS</title>
 <link rel="icon" href="/favicon.png">
 <style>
 :root {
@@ -13,6 +13,7 @@
     --dim:    #6b6560;
     --ok:     #e0892b;
     --ko:     #c0392b;
+    --good:   #15803d;
     --alert:  #b07d2a;
     --row-ko-bg: #fbeeec;
   }
@@ -187,7 +188,9 @@
   .brand { display:flex; flex-direction:column; align-items:flex-start; gap:7px; cursor:pointer; }
   #dash-logo { width:78px; height:78px; object-fit:contain; background:transparent; border:0; display:block; }
   .brand-name { font-size:16px; font-weight:700; letter-spacing:0.22em; text-transform:uppercase; color:var(--text); }
+  .brand-updated { font-size:11px; font-weight:400; letter-spacing:normal; text-transform:none; color:var(--dim); min-height:14px; margin-top:1px; }
   .head-right { display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+  .head-ver { font-size:11px; letter-spacing:.04em; opacity:.55; font-variant-numeric:tabular-nums; align-self:center; text-align:center; padding-top:10px; }
   .av-tools { display:flex; gap:8px; }
   @media (max-width:600px){ .brand-name{font-size:14px;letter-spacing:.16em;} #dash-logo{width:60px;height:60px;} }
 
@@ -197,10 +200,12 @@
 <header>
   <div class="brand" id="brand" title="Actualiser">
     <img id="dash-logo" alt="" style="display:none">
-    <span class="brand-name" id="dash-title">Malinois</span>
+    <span class="brand-name" id="dash-title">MALINOIS</span>
+    <span class="brand-updated" id="updated"></span>
   </div>
   <div class="head-right">
     <div class="av-tools" id="tools-slot"></div>
+    <span class="head-ver" id="app-ver"></span>
   </div>
 </header>
 <div id="content">
@@ -216,12 +221,12 @@
       <th data-col="rang">Rang</th>
       <th class="col-secondary" data-col="autres">Autres</th>
       <th class="col-secondary" data-col="date">Dernière connexion</th>
-      <th></th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody id="tbody"></tbody>
 </table>
 </div>
-<script src="/addsite.js?v=80"></script>
+<script src="/addsite.js?v=116"></script>
 </body>
 </html>

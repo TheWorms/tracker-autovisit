@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Malinois : patches additifs pour autovisit.py
+# MALINOIS : patches additifs pour autovisit.py
 #   1) 2FA a etape separee dans le login hybride du mode session/Cloudflare
 #   2) "inspect" : extract_stats / extract_stats_json deversent ce qu'ils recoivent
 #      dans le fichier pointe par $AUTOVISIT_INSPECT (pour le bouton Inspecter).
@@ -11,18 +11,18 @@ P = sys.argv[1] if len(sys.argv) > 1 else "/opt/tracker-autovisit/autovisit.py"
 try:
     src = io.open(P, encoding="utf-8").read()
 except Exception as e:
-    print("Malinois patch : lecture impossible (%s) -- ignore" % e); sys.exit(0)
+    print("MALINOIS patch : lecture impossible (%s) -- ignore" % e); sys.exit(0)
 
 orig = src
 applied = []
 
 # ---- Patch 1 : 2FA session/Cloudflare ----
-if "Malinois-2FA-SESSION" not in src:
+if "MALINOIS-2FA-SESSION" not in src:
     anchor = '            log.info("[" + name + "] Login effectue (HTTP " + str(r_post.status_code) + ")")'
     if anchor in src:
         block = "\n".join([
             "",
-            "            # Malinois-2FA-SESSION : etape 2FA separee derriere Cloudflare/cookies",
+            "            # MALINOIS-2FA-SESSION : etape 2FA separee derriere Cloudflare/cookies",
             '            _t_url = site.get("totp_url"); _t_sec = site.get("totp_secret")',
             "            if _t_url and _t_sec:",
             '                _u = (getattr(r_post, "url", "") or "").lower()',
@@ -53,15 +53,15 @@ if "Malinois-2FA-SESSION" not in src:
         src = src.replace(anchor, anchor + block, 1)
         applied.append("2FA-session")
     else:
-        print("Malinois patch : ancre 2FA introuvable -- 2FA session ignore")
+        print("MALINOIS patch : ancre 2FA introuvable -- 2FA session ignore")
 
 # ---- Patch 2a : inspect HTML (extract_stats) ----
-if "Malinois-INSPECT-HTML" not in src:
+if "MALINOIS-INSPECT-HTML" not in src:
     a = "def extract_stats(html, patterns):"
     if a in src:
         block = "\n".join([
             "",
-            "    # Malinois-INSPECT-HTML",
+            "    # MALINOIS-INSPECT-HTML",
             "    import os as _os",
             '    _insf = _os.environ.get("AUTOVISIT_INSPECT")',
             "    if _insf and not _os.path.exists(_insf):",
@@ -73,15 +73,15 @@ if "Malinois-INSPECT-HTML" not in src:
         src = src.replace(a, a + block, 1)
         applied.append("inspect-html")
     else:
-        print("Malinois patch : ancre extract_stats introuvable -- inspect HTML ignore")
+        print("MALINOIS patch : ancre extract_stats introuvable -- inspect HTML ignore")
 
 # ---- Patch 2b : inspect JSON (extract_stats_json) ----
-if "Malinois-INSPECT-JSON" not in src:
+if "MALINOIS-INSPECT-JSON" not in src:
     a = "def extract_stats_json(data, fields):"
     if a in src:
         block = "\n".join([
             "",
-            "    # Malinois-INSPECT-JSON",
+            "    # MALINOIS-INSPECT-JSON",
             "    import os as _os, json as _json",
             '    _insf = _os.environ.get("AUTOVISIT_INSPECT")',
             "    if _insf and not _os.path.exists(_insf):",
@@ -93,10 +93,10 @@ if "Malinois-INSPECT-JSON" not in src:
         src = src.replace(a, a + block, 1)
         applied.append("inspect-json")
     else:
-        print("Malinois patch : ancre extract_stats_json introuvable -- inspect JSON ignore")
+        print("MALINOIS patch : ancre extract_stats_json introuvable -- inspect JSON ignore")
 
 
-# === Patches backend Malinois v78 (additifs, idempotents, best-effort) ===
+# === Patches backend MALINOIS v78 (additifs, idempotents, best-effort) ===
 # Note : sur un conteneur deja patche a chaud (session v77->v78), le contenu est
 # deja present ; l'ancre "avant patch" ne matchera pas et le patch sera ignore
 # proprement (le code fonctionnel reste en place). Sur un autovisit.py vierge,
@@ -112,7 +112,7 @@ if "Stats JSON (api_json) -- lit /api/auth/me" not in src:
     b = ('        # Stats\n'
          '        site_stats = site.get("stats", {})\n'
          '        stats = {}\n'
-         '        # Malinois-APIJSON-SESSION : Stats JSON (api_json) -- lit /api/auth/me etc.\n'
+         '        # MALINOIS-APIJSON-SESSION : Stats JSON (api_json) -- lit /api/auth/me etc.\n'
          '        if site.get("api_json") and site.get("stats_json"):\n'
          '            try:\n'
          '                stats = extract_stats_json(rv.json(), site["stats_json"])\n'
@@ -123,19 +123,19 @@ if "Stats JSON (api_json) -- lit /api/auth/me" not in src:
     if a in src:
         src = src.replace(a, b, 1); applied.append("apijson-session")
     else:
-        print("Malinois patch : ancre apijson-session introuvable (deja applique ?) -- ignore")
+        print("MALINOIS patch : ancre apijson-session introuvable (deja applique ?) -- ignore")
 
 # ---- Patch 4 : priorite cookies fichier > FlareSolverr (Nexum) ----
 if "_cf_filtered" not in src:
     a = "        cookies_data = list(cookies_data) + list(cf_cookies)"
-    b = ('        # Malinois-CF-COOKIE-PRIORITY : le fichier prime sur FlareSolverr\n'
+    b = ('        # MALINOIS-CF-COOKIE-PRIORITY : le fichier prime sur FlareSolverr\n'
          '        _file_names = {c.get("name") for c in cookies_data}\n'
          '        _cf_filtered = [c for c in cf_cookies if c.get("name") not in _file_names]\n'
          '        cookies_data = list(cookies_data) + list(_cf_filtered)')
     if a in src:
         src = src.replace(a, b, 1); applied.append("cf-cookie-priority")
     else:
-        print("Malinois patch : ancre cf-cookie-priority introuvable (deja applique ?) -- ignore")
+        print("MALINOIS patch : ancre cf-cookie-priority introuvable (deja applique ?) -- ignore")
 
 # ---- Patch 5 : flux MFA -> stats JSON (C411) ----
 # Remplace le bloc complet : condition + GET + stats_json + verif finale tolerante.
@@ -152,7 +152,7 @@ if 'Connexion reussie apres MFA JSON (stats lues)' not in src:
          '                                    log.warning(msg)\n'
          '                                    return False, msg, None')
     if a in src:
-        b = ('                            # Malinois-MFA-STATSJSON : lit stats_json dans le flux MFA\n'
+        b = ('                            # MALINOIS-MFA-STATSJSON : lit stats_json dans le flux MFA\n'
              '                            if verify_url and (custom_keywords or site.get("stats_json") or site.get("extra_stats")):\n'
              '                                _vh = {"Accept": "application/json"}\n'
              '                                if use_curl: _vh["Accept-Encoding"] = "identity"\n'
@@ -190,10 +190,63 @@ if 'Connexion reussie apres MFA JSON (stats lues)' not in src:
              '                                return True, msg, None')
         src = src.replace(a, b, 1); applied.append("mfa-statsjson")
     else:
-        print("Malinois patch : ancre mfa-statsjson introuvable (deja applique ?) -- ignore")
+        print("MALINOIS patch : ancre mfa-statsjson introuvable (deja applique ?) -- ignore")
+
+# ---- Patch 6 : mode cookie Playwright + User-Agent (Nostradamus / Anubis + LiveView) ----
+if "malinois-cookie-playwright" not in src:
+    anchor_np = '            page = browser.new_page()\n'
+    if anchor_np in src:
+        repl6 = (
+            '            # malinois-cookie-playwright : contexte avec UA + reutilisation de session (cookies)\n'
+            '            _ua = site.get("user_agent")\n'
+            '            _ctx = browser.new_context(user_agent=_ua) if _ua else browser.new_context()\n'
+            '            page = _ctx.new_page()\n'
+            '            _scf = site.get("playwright_cookies_file")\n'
+            '            _cookie_mode = bool(_scf)\n'
+            '            if _cookie_mode:\n'
+            '                try:\n'
+            '                    import json as _json\n'
+            '                    try:\n'
+            '                        from urllib.parse import urlparse as _urlparse\n'
+            '                        _host = _urlparse(site["url"]).hostname\n'
+            '                    except Exception:\n'
+            '                        _host = site["url"].split("/")[2]\n'
+            '                    _raw = _json.load(open(_scf, encoding="utf-8"))\n'
+            '                    _cks = []\n'
+            '                    for _c in _raw:\n'
+            '                        if not _c.get("name"):\n'
+            '                            continue\n'
+            '                        _ck = {"name": _c["name"], "value": _c.get("value", ""),\n'
+            '                               "domain": _c.get("domain") or _host, "path": _c.get("path") or "/"}\n'
+            '                        if _c.get("secure") is not None:\n'
+            '                            _ck["secure"] = bool(_c["secure"])\n'
+            '                        if _c.get("httpOnly") is not None:\n'
+            '                            _ck["httpOnly"] = bool(_c["httpOnly"])\n'
+            '                        _cks.append(_ck)\n'
+            '                    _ctx.add_cookies(_cks)\n'
+            '                    log.info("[" + name + "] " + str(len(_cks)) + " cookie(s) injecte(s) (session + Anubis) -- login saute (mode cookie)")\n'
+            '                except Exception as _e:\n'
+            '                    log.error("[" + name + "] echec injection cookies : " + str(_e))\n'
+            '                    _cookie_mode = False\n'
+        )
+        src = src.replace(anchor_np, repl6, 1)
+        _sa6 = '            log.info("[" + name + "] Chargement de la page de login (Playwright) : " + site["url"])'
+        _ea6 = '            log.info("[" + name + "] URL apres 2FA : " + page.url)'
+        _i6 = src.find(_sa6); _j6 = src.find(_ea6)
+        if _i6 != -1 and _j6 != -1:
+            _j6 += len(_ea6)
+            _blk6 = src[_i6:_j6]
+            _wrp6 = '            if not _cookie_mode:\n' + "\n".join(
+                (("    " + ln) if ln.strip() else ln) for ln in _blk6.split("\n"))
+            src = src[:_i6] + _wrp6 + src[_j6:]
+            applied.append("cookie-playwright")
+        else:
+            print("MALINOIS patch : ancres login/2FA introuvables -- cookie-playwright ignore")
+    else:
+        print("MALINOIS patch : ancre new_page introuvable -- cookie-playwright ignore")
 
 if not applied:
-    print("Malinois patch : rien a faire (deja applique)."); sys.exit(0)
+    print("MALINOIS patch : rien a faire (deja applique)."); sys.exit(0)
 
 bak = P + ".malinois.bak"
 if not os.path.exists(bak):
@@ -202,7 +255,7 @@ if not os.path.exists(bak):
 io.open(P, "w", encoding="utf-8").write(src)
 try:
     py_compile.compile(P, doraise=True)
-    print("Malinois patch : applique -> " + ", ".join(applied))
+    print("MALINOIS patch : applique -> " + ", ".join(applied))
 except Exception as e:
     io.open(P, "w", encoding="utf-8").write(orig)
-    print("Malinois patch : ECHEC compilation, restaure (%s)." % e); sys.exit(1)
+    print("MALINOIS patch : ECHEC compilation, restaure (%s)." % e); sys.exit(1)

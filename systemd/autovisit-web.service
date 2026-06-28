@@ -4,6 +4,9 @@ After=network.target
 
 [Service]
 ExecStart=/usr/bin/python3 /opt/tracker-autovisit/web-api.py
+Environment=MAL_CT_IP=${CT_IP}
+Environment=MAL_LAN_CIDR=${LAN_CIDR}
+Environment=MAL_WEBROOT=/var/www/autovisit
 Restart=always
 User=root
 

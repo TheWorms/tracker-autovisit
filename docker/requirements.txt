@@ -1,5 +1,9 @@
 # Dépendances installées dans l'image Malinois.
 # -- couche Malinois (web-api.py + outils) --
+# supervisor DOIT venir de pip (sous Python 3.12), pas d'apt : le paquet apt de Bookworm
+# dépose sa metadata sous Python 3.11 et, à cause du symlink python3->3.12 du Dockerfile,
+# /usr/local/bin/supervisord (3.12) lèverait PackageNotFoundError. CMD appelle bien /usr/local/bin/supervisord.
+supervisor
 pillow
 pyotp
 requests

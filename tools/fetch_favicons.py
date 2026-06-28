@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Malinois : recupere le favicon des trackers absents du depot (le conteneur a Internet).
+# MALINOIS : recupere le favicon des trackers absents du depot (le conteneur a Internet).
 # Sauvegarde en /var/www/autovisit/.logos/<id>.png (64px). Best-effort, jamais bloquant.
 import sys, io, os, re, json
 try:

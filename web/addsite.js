@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  var TRACKERS = /*TRACKERS_DB*/[{"id": "abnormal", "n": "ABNormal", "d": "abn.lol", "p": "aspnet", "lp": "/Home/Login", "vp": "/", "to": false, "uf": "Username", "pf": "Password", "csrf": "__RequestVerificationToken", "hid": 1, "ef": {"RememberMe": "false"}, "lg": 1, "s": {"upload": "Seeds\\\">Up\\s*:\\s*<span[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": "Seeds\\\">Down\\s*:\\s*<span[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": ">Ratio\\s*:\\s*<span[^>]*>\\s*([\\d.,]+)", "bonus": "ChocosShop[\\s\\S]{0,80}?<span[^>]*>\\s*([\\d\\s.,]+)", "invitations": "Invitations[\\s\\S]{0,80}?(\\d[\\d\\s.,]*\\d|\\d)", "class": "class=\\\"userclass_([A-Za-z0-9]+)"}}, {"id": "bitporn", "n": "BitPorn", "d": "bitporn.eu", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "au": "cookie", "lg": 1, "s": {"upload": "ratio-bar__uploaded[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)", "download": "ratio-bar__downloaded[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)", "bufferBytes": "ratio-bar__buffer[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)"}}, {"id": "brokenstones", "n": "BrokenStones", "d": "brokenstones.is", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": false, "hid": 1, "ef": {"keeplogged": "1"}, "s": {"upload": "stats_seeding[\\s\\S]{0,200}?<span[^>]*>\\s*([\\d.]+ (?:TB|GB|MB|KB))\\s*</span>", "download": "stats_leeching[\\s\\S]{0,200}?<span[^>]*>\\s*([\\d.]+ (?:TB|GB|MB|KB))\\s*</span>", "ratio": "stats_ratio[\\s\\S]{0,200}?<span[^>]*>\\s*([\\d.]+)\\s*</span>", "tokens": "fl_tokens[\\s\\S]{0,200}?<a[^>]*>\\s*(\\d+)\\s*</a>"}, "lg": 1}, {"id": "c411", "n": "C411", "d": "c411.org", "p": "apijson", "lp": "/login", "vp": "/api/auth/me", "to": true, "pp": "/api/auth/login", "pv": ["/api/settings/public"], "mu": "/api/auth/mfa/totp", "tf": "code", "sf": "authenticated", "mp": {"u": "/api/messages/unread-count", "f": "total"}, "lg": 1, "sj": {"download": "user.downloaded", "upload": "user.uploaded", "ratio": "user.ratio", "class": "user.badge.label"}}, {"id": "crazyspirits", "n": "CrazySpirits", "d": "crazyspirits.com", "p": "form", "lp": "/account-login.php", "vp": "/", "to": false, "br": 1, "au": "cookie", "lg": 1, "s": {"download": "/dl\\.png\"[\\s\\S]{0,160}?<font[^>]*>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "upload": "/up\\.png\"[\\s\\S]{0,160}?<font[^>]*>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "bonus": "Crazy Bonus\\s*<a[^>]*>\\s*([\\d\\s.,]+)"}}, {"id": "empornium", "n": "Empornium", "d": "www.empornium.sx", "p": "gazelle", "lp": "/login", "vp": "/", "to": false, "hid": 1, "ef": {"keeploggedin": "1"}, "lg": 1, "s": {"bonus": ">Credits</a>:\\s*</td>[\\s\\S]{0,140}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+)", "upload": ">Up</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": ">Down</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": ">Ratio</a>:\\s*</td>[\\s\\S]{0,220}?<span[^>]*class=['\"]r\\d+['\"][^>]*>\\s*(\\d[\\d\\s.,]*)"}}, {"id": "exoticaz", "n": "ExoticaZ", "d": "exoticaz.to", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "ef": {"remember": "on"}, "br": 1, "au": "cookie", "s": {"upload": "fa-arrow-up[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "download": "fa-arrow-down[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "ratio": "fa-signal[\\s\\S]{0,40}?</i>\\s*([\\d.,]+)", "bufferBytes": "fa-database[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "seeding": "Seeding:</a>\\s*(\\d+)", "bonus": "Bonus:</a>\\s*([\\d.,]+)"}, "lg": 1}, {"id": "g3mini", "n": "G3MINI", "d": "gemini-tracker.org", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1, "s": {"upload": "ratio-bar__uploaded[\\s\\S]{0,400}?(\\d[\\d.,]*(?:&nbsp;|[\\s\\u00a0])*[KMGTPE]i?B)", "download": "ratio-bar__downloaded[\\s\\S]{0,400}?(\\d[\\d.,]*(?:&nbsp;|[\\s\\u00a0])*[KMGTPE]i?B)", "ratio": "ratio-bar__ratio[\\s\\S]{0,400}?</i>\\s*([\\d.,]+)", "seeding": "ratio-bar__seeding[\\s\\S]{0,400}?</i>\\s*(\\d+)", "bonus": "ratio-bar__points[\\s\\S]{0,400}?</i>\\s*([\\d\\s.,\\u00a0]+?)\\s*</a>", "bufferBytes": "ratio-bar__buffer[\\s\\S]{0,400}?(\\d[\\d.,]*(?:&nbsp;|[\\s\\u00a0])*[KMGTPE]i?B)"}, "au": "cookie", "pp": "/api/auth/login"}, {"id": "generationfree", "n": "Generation-Free", "d": "generation-free.org", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1}, {"id": "happyfappy", "n": "HappyFappy", "d": "www.happyfappy.net", "p": "gazelle", "lp": "/login", "vp": "/", "to": false, "hid": 1, "ef": {"keeploggedin": "1"}, "lg": 1, "s": {"bonus": ">Credits</a>:\\s*</td>[\\s\\S]{0,140}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+)", "upload": ">Up</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": ">Down</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": ">Ratio</a>:\\s*</td>[\\s\\S]{0,220}?<span[^>]*class=['\"]r\\d+['\"][^>]*>\\s*(\\d[\\d\\s.,]*)"}}, {"id": "hdforever", "n": "HD-Forever", "d": "hdf.world", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": true, "hid": 1, "ef": {"login": "Se connecter", "keeplogged": "1"}, "mu": "/login.php?act=otp", "tf": "otp_code", "lg": 1, "s": {"upload": "class=\\\"stat tooltip up\\\" title=\\\"([^\\\"]+)\\\"", "download": "class=\\\"stat tooltip dl\\\" title=\\\"([^\\\"]+)\\\"", "ratio": "stats_ratio[^>]*>Ratio[^<]*<[^>]*><span class=\\\"tooltip r\\d+\\\" title=\\\"([^\\\"]+)\\\"", "bonus": "action=rate[^>]+>([\\d,]+)<", "jetons FL": ">Jetons FL</a>[\\s\\S]{0,200}?>\\s*(\\d[\\d\\s.,]*\\d|\\d)\\s*</a>", "unreadMessages": "data-notification-type=['\\\"]Inbox['\\\"][^>]*>[^<]*?(\\d+|\\bun) nouveau", "class": "class=\\\"userclass\\\">\\(?([^)<]+)"}}, {"id": "hdonly", "n": "HD-Only", "d": "hd-only.org", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": false, "hid": 1, "ef": {"keeplogged": "1", "login": "Se connecter"}, "lg": 1, "s": {"upload": "Envoy[\\s\\S]{0,160}?([\\d\\s.,]+\\s*[KMGTPE]?i?B)", "download": "Re[\\s\\S]{0,160}?([\\d\\s.,]+\\s*[KMGTPE]?i?B)", "unreadMessages": "data-notification-type=['\"]Inbox['\"][^>]*>[^<]*?(\\d+|\\bun) nouveau", "class": "id=\"pseudo\"[\\s\\S]*?\\(?:([^)]+)\\)"}}, {"id": "iptorrents", "n": "IPTorrents", "d": "www.iptorrents.com", "p": "form", "lp": "/do-login.php", "vp": "/", "to": false, "br": 1, "s": {"upload": ">Uploaded</div>\\s*<i[^>]*></i>\\s*([\\d.,]+\\s*(?:[KMGTPE]i?B|B))", "download": ">Downloaded</div>\\s*<i[^>]*></i>\\s*([\\d.,]+\\s*(?:[KMGTPE]i?B|B))", "ratio": "c_ratio[\\s\\S]{0,120}?</i>\\s*([\\d.,]+)", "bonus": ">Bonus Points</div>\\s*<i[^>]*></i>\\s*([\\d.,]+)"}, "lg": 1}, {"id": "kufirc", "n": "KuFirc", "d": "kufirc.com", "p": "gazelle", "lp": "/login", "vp": "/", "to": false, "hid": 1, "ef": {"keeploggedin": "1"}, "lg": 1, "s": {"bonus": ">Credits</a>:\\s*</td>[\\s\\S]{0,140}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+)", "upload": ">Up</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": ">Down</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": ">Ratio</a>:\\s*</td>[\\s\\S]{0,220}?<span[^>]*class=['\"]r\\d+['\"][^>]*>\\s*(\\d[\\d\\s.,]*)"}}, {"id": "lacale", "n": "La Cale", "d": "la-cale.space", "p": "form", "lp": "/login", "vp": "/profile", "to": false, "uf": "email", "br": 1, "lg": 1, "s": {"upload": "\\\\?\"uploaded\\\\?\"\\s*:\\s*(\\d+)", "download": "\\\\?\"downloaded\\\\?\"\\s*:\\s*(\\d+)", "bonus": "\\\\?\"bonusPoints\\\\?\"\\s*:\\s*(\\d+)"}}, {"id": "mam", "n": "MAM", "d": "www.myanonamouse.net", "p": "form", "lp": "/login.php?returnto=%2Fu%2F", "vp": "/u/", "to": false, "ef": {"rememberMe": "yes", "returnto": "/u/"}, "br": 1, "au": "cookie", "lg": 1, "s": {"upload": "Uploaded[\\s\\S]{0,160}?([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": "Downloaded[\\s\\S]{0,160}?([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": "Share ratio[\\s\\S]{0,160}?(\\d[\\d\\s.,]*)", "bonus": "Bonus[\\s\\S]{0,160}?([\\d\\s.,]+)"}}, {"id": "milkie", "n": "Milkie", "d": "milkie.cc", "p": "form", "lp": "/auth/signin", "vp": "/browse", "to": false, "uf": "email", "br": 1, "lg": 1, "s": {"upload": "keyboard_arrow_up[\\s\\S]{0,140}?([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": "keyboard_arrow_down[\\s\\S]{0,140}?([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))"}}, {"id": "nexum", "n": "Nexum", "d": "nexum-core.com", "p": "unit3d", "lp": "/login", "vp": "/activity", "uf": "email", "csrf": "_token", "hid": 1, "mu": "/login/2fa", "tf": "code", "xf": {"u": "https://nexum-core.com/user/{{username}}", "fmt": "html", "s": {"upload": "<span class=\"val[^\"]*\"[^>]*>\\s*([\\d.,]+\\s*(?:[KMGTPE]i?o|[KMGTPE]i?B|o|B))\\s*</span>\\s*<span class=\"lbl\">\\s*Uploadé", "bonus": "<span class=\"val[^\"]*\"[^>]*>\\s*([\\d\\s.,]+)\\s*</span>\\s*<span class=\"lbl\">\\s*Points bonus", "downloads": "<span class=\"val[^\"]*\"[^>]*>\\s*(\\d+)\\s*</span>\\s*<span class=\"lbl\">\\s*Téléchargements", "ratio": "title=\"Ratio de ([\\d.,]+)", "class": "title=\"Grade\\s*:\\s*([A-Za-zÀ-ÿ][\\wÀ-ÿ ]*?)\\s*(?:—|<)"}}, "lg": 1, "s": {"unreadMessages": "id=['\\\"]pm-badge['\\\"][^>]*>(\\d+)"}, "cf": 1, "au": "cookie"}, {"id": "nostradamus", "n": "Nostradamus", "d": "nostradamus.foo", "p": "form", "lp": "/sign-in", "vp": "/activity", "to": false, "br": 1, "au": "key", "pks": "#private-key-input", "s": {"upload": ">\\s*Upload total\\s*</div>\\s*<div class=\\\"mt-1[^\\\"]*\\\">\\s*([\\d.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": ">\\s*Download total\\s*</div>\\s*<div class=\\\"mt-1[^\\\"]*\\\">\\s*([\\d.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "snatches": ">\\s*Snatches uniques\\s*</div>\\s*<div class=\\\"mt-1[^\\\"]*\\\">\\s*(\\d+)", "anciennete": ">\\s*Anciennet[^<]*</div>\\s*<div class=\\\"mt-1[^\\\"]*\\\">\\s*([^<]+?)\\s*</div>"}, "lg": 1}, {"id": "orpheus", "n": "Orpheus", "d": "orpheus.network", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": false, "hid": 1, "lg": 1, "s": {"download": "id=\"stats_leeching\"[\\s\\S]*?title=\"([^\"]+)\"", "upload": "id=\"stats_seeding\"[\\s\\S]*?title=\"([^\"]+)\"", "ratio": "id=\"stats_ratio\"[\\s\\S]*?title=\"([^\"]+)\"", "bonus": "Bonus \\(?:([^)]+)\\)", "unreadMessages": "data-noty-type=['\"]Inbox['\"][^>]*>[^<]*?(\\d+|\\ba) new message"}}, {"id": "phoenixproject", "n": "Phoenix Project", "d": "phoenixproject.app", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": true, "hid": 1, "ef": {"login": "Log in", "keeplogged": "1"}, "s": {"upload": "id=\"stats_seeding\"[\\s\\S]{0,200}?title=\"([^\"]+)\"", "download": "id=\"stats_leeching\"[\\s\\S]{0,200}?title=\"([^\"]+)\"", "ratio": "id=\"stats_ratio\"[\\s\\S]{0,200}?title=\"([^\"]+)\"", "bonus": "Bonus \\(([\\d.,]+)\\)", "unreadMessages": "data-noty-type=['\"]Inbox['\"][^>]*>[^<]*?(\\d+|\\ba) new message", "class": "userclass\">([^<]+)"}, "tf": "twofa", "lg": 1}, {"id": "redacted", "n": "Redacted", "d": "redacted.sh", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": false, "hid": 1, "lg": 1, "s": {"requiredRatio": "id=\"stats_required\"[^>]*title=\"Required Ratio: ([^\"]+)\"", "unreadMessages": "data-noty-type=['\"]Inbox['\"][^>]*>[^<]*?(\\d+)"}}, {"id": "seedpool", "n": "Seedpool", "d": "seedpool.org", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "br": 1, "au": "cookie", "lg": 1}, {"id": "sextorrent", "n": "SexTorrent", "d": "sextorrent.myds.me", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1}, {"id": "speedapp", "n": "SpeedApp", "d": "speedapp.io", "p": "form", "lp": "/fr/connexion?locale=fr", "vp": "/profile", "to": false, "ef": {"_remember_me": "on"}, "lg": 1, "s": {"upload": "Uploaded[\\s\\S]{0,120}?<dd[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</dd>", "download": "Downloaded[\\s\\S]{0,120}?<dd[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</dd>", "seedTimeDays": "Seed time[\\s\\S]{0,120}?<dd[^>]*>\\s*(\\d[\\d\\s.,]*)\\s*days"}}, {"id": "teamflix", "n": "TeamFlix", "d": "tracker.teamflix.cc", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1}, {"id": "theoldschool", "n": "The Old School", "d": "theoldschool.cc", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1, "s": {"upload": "ratio-bar__uploaded[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)", "download": "ratio-bar__downloaded[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)", "ratio": "ratio-bar__ratio[\\s\\S]{0,200}?</i>\\s*([\\d.,]+)", "seeding": "ratio-bar__seeding[\\s\\S]{0,200}?</i>\\s*(\\d+)", "bonus": "ratio-bar__(?:points|seedbonus|bonus)[\\s\\S]{0,200}?</i>\\s*(\\d[\\d\\s.,]*?)\\s*</a>", "bufferBytes": "ratio-bar__buffer[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)"}, "au": "cookie", "pp": "/api/auth/login"}, {"id": "tigersdl", "n": "Tigers-DL", "d": "www.tigers-dl.net", "p": "form", "lp": "/account-login.php", "vp": "/mybonus.php", "to": false, "br": 1, "lg": 1, "s": {"upload": "title=['\"]Partager['\"][\\s\\S]{0,180}?<font[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</font>", "download": "title=['\"][^'\"]*charg[^'\"]*['\"][\\s\\S]{0,180}?<font[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</font>", "bonus": "Votre solde[\\s\\S]{0,180}?score-points[^>]*>\\s*([\\d\\s.,]+)", "seeding": "(?:Nombres de Torrents que vous avez en seed\\s*:\\s*|title=['\"]Seeding['\"][\\s\\S]{0,120}?<b>\\s*)(\\d+)"}}, {"id": "torr9", "n": "Torr9", "d": "torr9.net", "p": "apijson", "lp": "https://torr9.net/login", "vp": "https://api.torr9.net/api/v1/users/me", "to": false, "pp": "https://api.torr9.net/api/v1/auth/login", "sf": "token", "mp": {"u": "https://api.torr9.net/api/v1/chat/unread-counts", "f": "total_dms"}, "lg": 1, "sj": {"download": "total_downloaded_bytes", "upload": "total_uploaded_bytes", "bonus": "jeton_balance", "class": "role"}}, {"id": "torrentleech", "n": "TorrentLeech", "d": "www.torrentleech.org", "p": "form", "lp": "/user/account/login/", "vp": "/", "to": false, "s": {"upload": "title=\"Uploaded \\(?:Seeding\\)\"[\\s\\S]*?<span[^>]*>([\\d\\s.,]+\\s*(?:[KMGTPE](?:B|io|o)|B))</span>", "download": "title=\"Downloaded \\(?:Leeching\\)\"[\\s\\S]*?<span[^>]*>([\\d\\s.,]+\\s*(?:[KMGTPE](?:B|io|o)|B))</span>", "ratio": "title=\"Ratio\"[\\s\\S]*?<i[^>]*></i>\\s*([\\d\\s.,]+)", "bonus": "TL Points:[^<]*<span class=\"total-TL-points\">([^<]+)</span>"}, "lg": 1}, {"id": "tr4ker", "n": "TR4KER", "d": "tr4ker.net", "p": "apijson", "lp": "/login", "vp": "/api/me", "to": false, "au": "cookie", "lg": 1, "pp": "/api/auth/login", "sf": "id", "sj": {"upload": "uploaded", "download": "downloaded", "bonus": "money"}}, {"id": "yggreborn", "n": "YGGReborn", "d": "www.yggreborn.org", "p": "form", "lp": "/login?next=/account/", "vp": "/account/", "to": false, "br": 1, "au": "cookie", "s": {"upload": "(\\d[\\d\\s.,]*\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</div>[\\s\\S]{0,180}?>Upload<", "download": "(\\d[\\d\\s.,]*\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</div>[\\s\\S]{0,180}?>Download<", "class": ">R[oô]le</span>[\\s\\S]*?uppercase\"[\\s\\S]*?>([^<]+)</span>"}, "lg": 1}, {"id": "karagarga", "n": "KaraGarga", "d": "karagarga.in", "p": "form", "lp": "/login.php", "pp": "/takelogin.php", "vp": "/", "to": false, "uf": "username", "pf": "password", "hid": 1, "lg": 1, "s": {"upload": "Ratio:[\\s\\S]{0,120}?&#8593;<font[^>]*>\\s*([\\d.,]+\\s*[KMGTPE]i?B)\\s*</font>", "download": "Ratio:[\\s\\S]{0,160}?w/\\s*([\\d.,]+\\s*[KMGTPE]i?B)", "ratio": "Ratio:\\s*<font[^>]*>\\s*([\\d.,]+)\\s*</font>", "class": "<font color=blue>\\s*([^<]+?)\\s*</font>"}}, {"id": "privatehd", "n": "PrivateHD", "d": "privatehd.to", "p": "unit3d", "lp": "/auth/login", "vp": "/", "to": false, "ef": {"remember": "on"}, "au": "cookie", "s": {"upload": "fa-arrow-up[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "download": "fa-arrow-down[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "ratio": "fa-signal[\\s\\S]{0,40}?</i>\\s*([\\d.,]+)", "bufferBytes": "fa-database[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "seeding": "Seeding:</a>\\s*(\\d+)", "bonus": "Bonus:</a>\\s*([\\d.,]+)"}, "lg": 1}, {"id": "wihd", "n": "WiHD", "d": "world-in-hd.net", "p": "form", "lp": "/login", "pp": "/login_check", "vp": "/", "to": false, "uf": "_username", "pf": "_password", "csrf": "_csrf_token", "hid": 1, "ef": {"_remember_me": "on", "_submit": "Connexion"}, "lg": 1, "s": {"upload": "upload-stats\"[\\s\\S]{0,80}?</strong>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": "download-stats\"[\\s\\S]{0,80}?</strong>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": "class=\"ratio\"[\\s\\S]{0,80}?Ratio</strong>\\s*([\\d.,]+)", "theias": "class=\"theias\"[\\s\\S]{0,80}?Theias</strong>\\s*([\\d.,]+\\s*[KMGT]?)", "seeding": "upload-stats\"[\\s\\S]{0,40}?<strong>(\\d+)</strong>", "class": "<span class=\"class\"[^>]*>\\s*([^<]+?)\\s*</span>"}}];
+  var TRACKERS = /*TRACKERS_DB*/[{"id": "abnormal", "n": "ABNormal", "d": "abn.lol", "p": "aspnet", "lp": "/Home/Login", "vp": "/", "to": false, "uf": "Username", "pf": "Password", "csrf": "__RequestVerificationToken", "hid": 1, "ef": {"RememberMe": "false"}, "lg": 1, "s": {"upload": "Seeds\\\">Up\\s*:\\s*<span[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": "Seeds\\\">Down\\s*:\\s*<span[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": ">Ratio\\s*:\\s*<span[^>]*>\\s*([\\d.,]+)", "bonus": "ChocosShop[\\s\\S]{0,80}?<span[^>]*>\\s*([\\d\\s.,]+)", "invitations": "Invitations[\\s\\S]{0,80}?(\\d[\\d\\s.,]*\\d|\\d)", "class": "class=\\\"userclass_([A-Za-z0-9]+)"}}, {"id": "bitporn", "n": "BitPorn", "d": "bitporn.eu", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "au": "cookie", "lg": 1, "s": {"upload": "ratio-bar__uploaded[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)", "download": "ratio-bar__downloaded[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)", "bufferBytes": "ratio-bar__buffer[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)"}}, {"id": "brokenstones", "n": "BrokenStones", "d": "brokenstones.is", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": false, "hid": 1, "ef": {"keeplogged": "1"}, "s": {"upload": "stats_seeding[\\s\\S]{0,200}?<span[^>]*>\\s*([\\d.]+ (?:TB|GB|MB|KB))\\s*</span>", "download": "stats_leeching[\\s\\S]{0,200}?<span[^>]*>\\s*([\\d.]+ (?:TB|GB|MB|KB))\\s*</span>", "ratio": "stats_ratio[\\s\\S]{0,200}?<span[^>]*>\\s*([\\d.]+)\\s*</span>", "tokens": "fl_tokens[\\s\\S]{0,200}?<a[^>]*>\\s*(\\d+)\\s*</a>"}, "lg": 1}, {"id": "c411", "n": "C411", "d": "c411.org", "p": "apijson", "lp": "/login", "vp": "/api/auth/me", "to": true, "pp": "/api/auth/login", "pv": ["/api/settings/public"], "mu": "/api/auth/mfa/totp", "tf": "code", "sf": "authenticated", "mp": {"u": "/api/messages/unread-count", "f": "total"}, "lg": 1, "sj": {"download": "user.downloaded", "upload": "user.uploaded", "ratio": "user.ratio", "class": "user.badge.label"}}, {"id": "crazyspirits", "n": "CrazySpirits", "d": "crazyspirits.com", "p": "form", "lp": "/account-login.php", "vp": "/", "to": false, "br": 1, "au": "cookie", "lg": 1, "s": {"download": "/dl\\.png\"[\\s\\S]{0,160}?<font[^>]*>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "upload": "/up\\.png\"[\\s\\S]{0,160}?<font[^>]*>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "bonus": "Crazy Bonus\\s*<a[^>]*>\\s*([\\d\\s.,]+)"}}, {"id": "empornium", "n": "Empornium", "d": "www.empornium.sx", "p": "gazelle", "lp": "/login", "vp": "/", "to": false, "hid": 1, "ef": {"keeploggedin": "1"}, "lg": 1, "s": {"bonus": ">Credits</a>:\\s*</td>[\\s\\S]{0,140}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+)", "upload": ">Up</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": ">Down</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": ">Ratio</a>:\\s*</td>[\\s\\S]{0,220}?<span[^>]*class=['\"]r\\d+['\"][^>]*>\\s*(\\d[\\d\\s.,]*)"}}, {"id": "exoticaz", "n": "ExoticaZ", "d": "exoticaz.to", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "ef": {"remember": "on"}, "br": 1, "au": "cookie", "s": {"upload": "fa-arrow-up[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "download": "fa-arrow-down[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "ratio": "fa-signal[\\s\\S]{0,40}?</i>\\s*([\\d.,]+)", "bufferBytes": "fa-database[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "seeding": "Seeding:</a>\\s*(\\d+)", "bonus": "Bonus:</a>\\s*([\\d.,]+)"}, "lg": 1}, {"id": "g3mini", "n": "G3MINI", "d": "gemini-tracker.org", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1, "s": {"upload": "ratio-bar__uploaded[\\s\\S]{0,400}?(\\d[\\d.,]*(?:&nbsp;|[\\s\\u00a0])*[KMGTPE]i?B)", "download": "ratio-bar__downloaded[\\s\\S]{0,400}?(\\d[\\d.,]*(?:&nbsp;|[\\s\\u00a0])*[KMGTPE]i?B)", "ratio": "ratio-bar__ratio[\\s\\S]{0,400}?</i>\\s*([\\d.,]+)", "seeding": "ratio-bar__seeding[\\s\\S]{0,400}?</i>\\s*(\\d+)", "bonus": "ratio-bar__points[\\s\\S]{0,400}?</i>\\s*([\\d\\s.,\\u00a0]+?)\\s*</a>", "bufferBytes": "ratio-bar__buffer[\\s\\S]{0,400}?(\\d[\\d.,]*(?:&nbsp;|[\\s\\u00a0])*[KMGTPE]i?B)"}, "au": "cookie", "pp": "/api/auth/login"}, {"id": "generationfree", "n": "Generation-Free", "d": "generation-free.org", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1}, {"id": "happyfappy", "n": "HappyFappy", "d": "www.happyfappy.net", "p": "gazelle", "lp": "/login", "vp": "/", "to": false, "hid": 1, "ef": {"keeploggedin": "1"}, "lg": 1, "s": {"bonus": ">Credits</a>:\\s*</td>[\\s\\S]{0,140}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+)", "upload": ">Up</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": ">Down</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": ">Ratio</a>:\\s*</td>[\\s\\S]{0,220}?<span[^>]*class=['\"]r\\d+['\"][^>]*>\\s*(\\d[\\d\\s.,]*)"}}, {"id": "hdforever", "n": "HD-Forever", "d": "hdf.world", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": true, "hid": 1, "ef": {"login": "Se connecter", "keeplogged": "1"}, "mu": "/login.php?act=otp", "tf": "otp_code", "lg": 1, "s": {"upload": "class=\\\"stat tooltip up\\\" title=\\\"([^\\\"]+)\\\"", "download": "class=\\\"stat tooltip dl\\\" title=\\\"([^\\\"]+)\\\"", "ratio": "stats_ratio[^>]*>Ratio[^<]*<[^>]*><span class=\\\"tooltip r\\d+\\\" title=\\\"([^\\\"]+)\\\"", "bonus": "action=rate[^>]+>([\\d,]+)<", "jetons FL": ">Jetons FL</a>[\\s\\S]{0,200}?>\\s*(\\d[\\d\\s.,]*\\d|\\d)\\s*</a>", "unreadMessages": "data-notification-type=['\\\"]Inbox['\\\"][^>]*>[^<]*?(\\d+|\\bun) nouveau", "class": "class=\\\"userclass\\\">\\(?([^)<]+)"}}, {"id": "hdonly", "n": "HD-Only", "d": "hd-only.org", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": false, "hid": 1, "ef": {"keeplogged": "1", "login": "Se connecter"}, "lg": 1, "s": {"upload": "Envoy[\\s\\S]{0,160}?([\\d\\s.,]+\\s*[KMGTPE]?i?B)", "download": "Re[\\s\\S]{0,160}?([\\d\\s.,]+\\s*[KMGTPE]?i?B)", "unreadMessages": "data-notification-type=['\"]Inbox['\"][^>]*>[^<]*?(\\d+|\\bun) nouveau", "class": "id=\"pseudo\"[\\s\\S]*?\\(?:([^)]+)\\)"}}, {"id": "iptorrents", "n": "IPTorrents", "d": "www.iptorrents.com", "p": "form", "lp": "/do-login.php", "vp": "/", "to": false, "br": 1, "s": {"upload": ">Uploaded</div>\\s*<i[^>]*></i>\\s*([\\d.,]+\\s*(?:[KMGTPE]i?B|B))", "download": ">Downloaded</div>\\s*<i[^>]*></i>\\s*([\\d.,]+\\s*(?:[KMGTPE]i?B|B))", "ratio": "c_ratio[\\s\\S]{0,120}?</i>\\s*([\\d.,]+)", "bonus": ">Bonus Points</div>\\s*<i[^>]*></i>\\s*([\\d.,]+)"}, "lg": 1}, {"id": "kufirc", "n": "KuFirc", "d": "kufirc.com", "p": "gazelle", "lp": "/login", "vp": "/", "to": false, "hid": 1, "ef": {"keeploggedin": "1"}, "lg": 1, "s": {"bonus": ">Credits</a>:\\s*</td>[\\s\\S]{0,140}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+)", "upload": ">Up</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": ">Down</a>:\\s*</td>[\\s\\S]{0,160}?<span[^>]*class=['\"]stat['\"][^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": ">Ratio</a>:\\s*</td>[\\s\\S]{0,220}?<span[^>]*class=['\"]r\\d+['\"][^>]*>\\s*(\\d[\\d\\s.,]*)"}}, {"id": "lacale", "n": "La Cale", "d": "la-cale.space", "p": "form", "lp": "/login", "vp": "/profile", "to": false, "uf": "email", "br": 1, "lg": 1, "s": {"upload": "\\\\?\"uploaded\\\\?\"\\s*:\\s*(\\d+)", "download": "\\\\?\"downloaded\\\\?\"\\s*:\\s*(\\d+)", "bonus": "\\\\?\"bonusPoints\\\\?\"\\s*:\\s*(\\d+)"}}, {"id": "mam", "n": "MAM", "d": "www.myanonamouse.net", "p": "form", "lp": "/login.php?returnto=%2Fu%2F", "vp": "/u/", "to": false, "ef": {"rememberMe": "yes", "returnto": "/u/"}, "br": 1, "au": "cookie", "lg": 1, "s": {"upload": "Uploaded[\\s\\S]{0,160}?([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": "Downloaded[\\s\\S]{0,160}?([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": "Share ratio[\\s\\S]{0,160}?(\\d[\\d\\s.,]*)", "bonus": "Bonus[\\s\\S]{0,160}?([\\d\\s.,]+)"}}, {"id": "milkie", "n": "Milkie", "d": "milkie.cc", "p": "form", "lp": "/auth/signin", "vp": "/browse", "to": false, "uf": "email", "br": 1, "lg": 1, "s": {"upload": "keyboard_arrow_up[\\s\\S]{0,140}?([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": "keyboard_arrow_down[\\s\\S]{0,140}?([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))"}}, {"id": "nexum", "n": "Nexum", "d": "nexum-core.com", "p": "unit3d", "lp": "/login", "vp": "/activity", "uf": "email", "csrf": "_token", "hid": 1, "mu": "/login/2fa", "tf": "code", "xf": {"u": "https://nexum-core.com/user/{{username}}", "fmt": "html", "s": {"upload": "<span class=\"val[^\"]*\"[^>]*>\\s*([\\d.,]+\\s*(?:[KMGTPE]i?o|[KMGTPE]i?B|o|B))\\s*</span>\\s*<span class=\"lbl\">\\s*Uploadé", "bonus": "<span class=\"val[^\"]*\"[^>]*>\\s*([\\d\\s.,]+)\\s*</span>\\s*<span class=\"lbl\">\\s*Points bonus", "downloads": "<span class=\"val[^\"]*\"[^>]*>\\s*(\\d+)\\s*</span>\\s*<span class=\"lbl\">\\s*Téléchargements", "ratio": "title=\"Ratio de ([\\d.,]+)", "class": "title=\"Grade\\s*:\\s*([A-Za-zÀ-ÿ][\\wÀ-ÿ ]*?)\\s*(?:—|<)"}}, "lg": 1, "s": {"unreadMessages": "id=['\\\"]pm-badge['\\\"][^>]*>(\\d+)"}, "cf": 1, "au": "cookie"}, {"id": "nostradamus", "n": "Nostradamus", "d": "nostradamus.foo", "p": "form", "lp": "/sign-in", "vp": "/activity", "to": false, "br": 1, "au": "key", "pks": "#private-key-input", "s": {"upload": ">\\s*Upload total\\s*</div>\\s*<div class=\\\"mt-1[^\\\"]*\\\">\\s*([\\d.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": ">\\s*Download total\\s*</div>\\s*<div class=\\\"mt-1[^\\\"]*\\\">\\s*([\\d.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "snatches": ">\\s*Snatches uniques\\s*</div>\\s*<div class=\\\"mt-1[^\\\"]*\\\">\\s*(\\d+)", "anciennete": ">\\s*Anciennet[^<]*</div>\\s*<div class=\\\"mt-1[^\\\"]*\\\">\\s*([^<]+?)\\s*</div>"}, "lg": 1}, {"id": "orpheus", "n": "Orpheus", "d": "orpheus.network", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": false, "hid": 1, "lg": 1, "s": {"download": "id=\"stats_leeching\"[\\s\\S]*?title=\"([^\"]+)\"", "upload": "id=\"stats_seeding\"[\\s\\S]*?title=\"([^\"]+)\"", "ratio": "id=\"stats_ratio\"[\\s\\S]*?title=\"([^\"]+)\"", "bonus": "Bonus \\(?:([^)]+)\\)", "unreadMessages": "data-noty-type=['\"]Inbox['\"][^>]*>[^<]*?(\\d+|\\ba) new message"}}, {"id": "phoenixproject", "n": "Phoenix Project", "d": "phoenixproject.app", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": true, "hid": 1, "ef": {"login": "Log in", "keeplogged": "1"}, "s": {"upload": "id=\"stats_seeding\"[\\s\\S]{0,200}?title=\"([^\"]+)\"", "download": "id=\"stats_leeching\"[\\s\\S]{0,200}?title=\"([^\"]+)\"", "ratio": "id=\"stats_ratio\"[\\s\\S]{0,200}?title=\"([^\"]+)\"", "bonus": "Bonus \\(([\\d.,]+)\\)", "unreadMessages": "data-noty-type=['\"]Inbox['\"][^>]*>[^<]*?(\\d+|\\ba) new message", "class": "userclass\">([^<]+)"}, "tf": "twofa", "lg": 1}, {"id": "redacted", "n": "Redacted", "d": "redacted.sh", "p": "gazelle", "lp": "/login.php", "vp": "/", "to": false, "hid": 1, "lg": 1, "s": {"requiredRatio": "id=\"stats_required\"[^>]*title=\"Required Ratio: ([^\"]+)\"", "unreadMessages": "data-noty-type=['\"]Inbox['\"][^>]*>[^<]*?(\\d+)"}}, {"id": "seedpool", "n": "Seedpool", "d": "seedpool.org", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "br": 1, "au": "cookie", "lg": 1}, {"id": "sextorrent", "n": "SexTorrent", "d": "sextorrent.myds.me", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1}, {"id": "speedapp", "n": "SpeedApp", "d": "speedapp.io", "p": "form", "lp": "/fr/connexion?locale=fr", "vp": "/profile", "to": false, "ef": {"_remember_me": "on"}, "lg": 1, "s": {"upload": "Uploaded[\\s\\S]{0,120}?<dd[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</dd>", "download": "Downloaded[\\s\\S]{0,120}?<dd[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</dd>", "seedTimeDays": "Seed time[\\s\\S]{0,120}?<dd[^>]*>\\s*(\\d[\\d\\s.,]*)\\s*days"}}, {"id": "teamflix", "n": "TeamFlix", "d": "tracker.teamflix.cc", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1}, {"id": "teamos", "n": "TeamOS", "d": "www.teamos.xyz", "p": "xenforo", "lp": "/login/", "vp": "/account/", "to": false, "au": "cookie", "xf": {"u": "https://www.teamos.xyz/members/{{username}}/", "fmt": "html", "s": {"download": "torrentUserDownloaded[\\s\\S]{0,40}?([\\d.,]+\\s*(?:[KMGTPE]i?B|B))", "upload": "torrentUserUploaded[\\s\\S]{0,40}?([\\d.,]+\\s*(?:[KMGTPE]i?B|B))", "ratio": "torrentUserRatio[\\s\\S]{0,40}?([\\d.,]+)", "bonus": "torrentUserSeedbonus[\\s\\S]{0,40}?([\\d.,]+)", "class": "userBanner[\\s\\S]{0,120}?<strong>\\s*([^<]+?)\\s*</strong>"}}, "lg": 1}, {"id": "theoldschool", "n": "The Old School", "d": "theoldschool.cc", "p": "unit3d", "lp": "/login", "vp": "/", "to": false, "csrf": "_token", "hid": 1, "lg": 1, "s": {"upload": "ratio-bar__uploaded[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)", "download": "ratio-bar__downloaded[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)", "ratio": "ratio-bar__ratio[\\s\\S]{0,200}?</i>\\s*([\\d.,]+)", "seeding": "ratio-bar__seeding[\\s\\S]{0,200}?</i>\\s*(\\d+)", "bonus": "ratio-bar__(?:points|seedbonus|bonus)[\\s\\S]{0,200}?</i>\\s*(\\d[\\d\\s.,]*?)\\s*</a>", "bufferBytes": "ratio-bar__buffer[\\s\\S]{0,260}?(\\d[\\d.,]*(?:&nbsp;|&#160;|&#xa0;|[\\s\\u00a0])*[KMGTPE]i?B)"}, "au": "cookie", "pp": "/api/auth/login"}, {"id": "tigersdl", "n": "Tigers-DL", "d": "www.tigers-dl.net", "p": "form", "lp": "/account-login.php", "vp": "/mybonus.php", "to": false, "br": 1, "lg": 1, "s": {"upload": "title=['\"]Partager['\"][\\s\\S]{0,180}?<font[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</font>", "download": "title=['\"][^'\"]*charg[^'\"]*['\"][\\s\\S]{0,180}?<font[^>]*>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</font>", "bonus": "Votre solde[\\s\\S]{0,180}?score-points[^>]*>\\s*([\\d\\s.,]+)", "seeding": "(?:Nombres de Torrents que vous avez en seed\\s*:\\s*|title=['\"]Seeding['\"][\\s\\S]{0,120}?<b>\\s*)(\\d+)"}}, {"id": "torr9", "n": "Torr9", "d": "torr9.net", "p": "apijson", "lp": "https://torr9.net/login", "vp": "https://api.torr9.net/api/v1/users/me", "to": false, "pp": "https://api.torr9.net/api/v1/auth/login", "sf": "token", "mp": {"u": "https://api.torr9.net/api/v1/chat/unread-counts", "f": "total_dms"}, "lg": 1, "sj": {"download": "total_downloaded_bytes", "upload": "total_uploaded_bytes", "bonus": "jeton_balance", "class": "role"}}, {"id": "torrentleech", "n": "TorrentLeech", "d": "www.torrentleech.org", "p": "form", "lp": "/user/account/login/", "vp": "/", "to": false, "s": {"upload": "title=\"Uploaded \\(?:Seeding\\)\"[\\s\\S]*?<span[^>]*>([\\d\\s.,]+\\s*(?:[KMGTPE](?:B|io|o)|B))</span>", "download": "title=\"Downloaded \\(?:Leeching\\)\"[\\s\\S]*?<span[^>]*>([\\d\\s.,]+\\s*(?:[KMGTPE](?:B|io|o)|B))</span>", "ratio": "title=\"Ratio\"[\\s\\S]*?<i[^>]*></i>\\s*([\\d\\s.,]+)", "bonus": "TL Points:[^<]*<span class=\"total-TL-points\">([^<]+)</span>"}, "lg": 1}, {"id": "tr4ker", "n": "TR4KER", "d": "tr4ker.net", "p": "apijson", "lp": "/login", "vp": "/api/me", "to": false, "au": "cookie", "lg": 1, "pp": "/api/auth/login", "sf": "id", "sj": {"upload": "uploaded", "download": "downloaded", "bonus": "money"}}, {"id": "yggreborn", "n": "YGGReborn", "d": "www.yggreborn.org", "p": "form", "lp": "/login?next=/account/", "vp": "/account/", "to": false, "br": 1, "au": "cookie", "s": {"upload": "(\\d[\\d\\s.,]*\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</div>[\\s\\S]{0,180}?>Upload<", "download": "(\\d[\\d\\s.,]*\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))\\s*</div>[\\s\\S]{0,180}?>Download<", "class": ">R[oô]le</span>[\\s\\S]*?uppercase\"[\\s\\S]*?>([^<]+)</span>"}, "lg": 1}, {"id": "karagarga", "n": "KaraGarga", "d": "karagarga.in", "p": "form", "lp": "/login.php", "pp": "/takelogin.php", "vp": "/", "to": false, "uf": "username", "pf": "password", "hid": 1, "lg": 1, "s": {"upload": "Ratio:[\\s\\S]{0,120}?&#8593;<font[^>]*>\\s*([\\d.,]+\\s*[KMGTPE]i?B)\\s*</font>", "download": "Ratio:[\\s\\S]{0,160}?w/\\s*([\\d.,]+\\s*[KMGTPE]i?B)", "ratio": "Ratio:\\s*<font[^>]*>\\s*([\\d.,]+)\\s*</font>", "class": "<font color=blue>\\s*([^<]+?)\\s*</font>"}}, {"id": "privatehd", "n": "PrivateHD", "d": "privatehd.to", "p": "unit3d", "lp": "/auth/login", "vp": "/", "to": false, "ef": {"remember": "on"}, "au": "cookie", "s": {"upload": "fa-arrow-up[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "download": "fa-arrow-down[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "ratio": "fa-signal[\\s\\S]{0,40}?</i>\\s*([\\d.,]+)", "bufferBytes": "fa-database[\\s\\S]{0,40}?</i>\\s*([\\d.,]+\\s*[KMGTPE]?i?B)", "seeding": "Seeding:</a>\\s*(\\d+)", "bonus": "Bonus:</a>\\s*([\\d.,]+)"}, "lg": 1}, {"id": "wihd", "n": "WiHD", "d": "world-in-hd.net", "p": "form", "lp": "/login", "pp": "/login_check", "vp": "/", "to": false, "uf": "_username", "pf": "_password", "csrf": "_csrf_token", "hid": 1, "ef": {"_remember_me": "on", "_submit": "Connexion"}, "lg": 1, "s": {"upload": "upload-stats\"[\\s\\S]{0,80}?</strong>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "download": "download-stats\"[\\s\\S]{0,80}?</strong>\\s*([\\d\\s.,]+\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))", "ratio": "class=\"ratio\"[\\s\\S]{0,80}?Ratio</strong>\\s*([\\d.,]+)", "theias": "class=\"theias\"[\\s\\S]{0,80}?Theias</strong>\\s*([\\d.,]+\\s*[KMGT]?)", "seeding": "upload-stats\"[\\s\\S]{0,40}?<strong>(\\d+)</strong>", "class": "<span class=\"class\"[^>]*>\\s*([^<]+?)\\s*</span>"}}];
 
   var ICON = {
     power: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v8"/><path d="M7.5 7a7 7 0 1 0 9 0"/></svg>',
@@ -37,8 +37,8 @@
   .av-tbtn{width:38px;height:38px;border-radius:10px;border:1px solid rgba(127,127,127,.35);
     background:rgba(127,127,127,.12);color:#888;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s}
   html.av-dark .av-tbtn{color:#c2c8d2;border-color:#39414e;background:#1c222e}
-  .av-tbtn:hover{color:#111;border-color:#999}
-  html.av-dark .av-tbtn:hover{color:#fff;border-color:#5a6472}
+  .av-tbtn:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}
+  html.av-dark .av-tbtn:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}
   .av-tbtn:focus-visible{outline:2px solid #74d0d6;outline-offset:2px}
   .av-asst-grid{display:grid;grid-template-columns:auto minmax(70px,auto) 1fr auto;gap:8px 10px;align-items:center}
   .av-asst-grid label{font-size:13px;color:var(--text);font-weight:600;white-space:nowrap}
@@ -51,6 +51,7 @@
   html:not(.av-dark) .av-tbtn.accent:hover,html.av-dark .av-tbtn.accent:hover{color:#fff;border-color:transparent;filter:brightness(1.08)}
   .av-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(127,127,127,.3);border-top-color:currentColor;border-radius:50%;animation:av-spin .6s linear infinite;vertical-align:-2px;margin-right:4px}
   @keyframes av-spin{to{transform:rotate(360deg)}}
+  .brand.refreshing #dash-logo{animation:av-spin .9s linear infinite}
   /* schémas de couleurs des logs */
   #lg-out.lt-amber{background:#1a1206;color:#e8c98a}
   #lg-out.lt-amber .lg-ts{color:#8a6a38} #lg-out.lt-amber .lg-info{color:#d8a24a} #lg-out.lt-amber .lg-ok{color:#cBd14a} #lg-out.lt-amber .lg-site{color:#f0c060}
@@ -81,7 +82,7 @@
     border-radius:9px;color:#e6eaf1;font:14px/1.4 'JetBrains Mono',monospace;padding:9px 11px}
   .av-field input[type=color]{height:42px;padding:4px;cursor:pointer}
   .av-field textarea{min-height:74px;resize:vertical}
-  .av-field input:focus,.av-field select:focus,.av-field textarea:focus{outline:none;border-color:#e3a857}
+  .av-field input:focus,.av-field select:focus,.av-field textarea:focus{outline:none;border-color:var(--ok,#e0892b)}
   .av-hint{font-size:11px;color:#6b7383;margin:4px 0 0}
   .av-row{display:flex;gap:11px}.av-row .av-field{flex:1}
   .av-ac{position:absolute;left:0;right:0;top:100%;z-index:5;background:#1c222e;border:1px solid #2a3140;
@@ -103,29 +104,48 @@
   .av-adv>summary::before{content:"▸ ";color:#6b7383}.av-adv[open]>summary::before{content:"▾ "}
   .av-checks{display:flex;flex-direction:column;gap:8px;margin:10px 0 2px}
   .av-check{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#d8dde6;cursor:pointer}
-  .av-check input{margin-top:2px;accent-color:#e3a857;width:auto}
+  .av-check input[type=checkbox]{-webkit-appearance:none;appearance:none;margin:1px 0 0;width:18px;height:18px;flex:0 0 18px;
+    border:1.5px solid var(--border,#2a3140);border-radius:5px;background:transparent;cursor:pointer;position:relative;
+    transition:background .15s,border-color .15s}
+  .av-check input[type=checkbox]:hover{border-color:var(--ok,#e0892b)}
+  .av-check input[type=checkbox]:checked{background:var(--ok,#e0892b);border-color:var(--ok,#e0892b)}
+  .av-check input[type=checkbox]:checked::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:9px;
+    border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .av-check input[type=checkbox]:focus-visible{outline:2px solid var(--ok,#e0892b);outline-offset:2px}
   .av-check small{display:block;color:#6b7383;font-size:11.5px}
   .av-foot{display:flex;gap:10px;justify-content:flex-end;padding:16px 20px;border-top:1px solid #232a36}
   .av-btn{font:500 14px/1 Inter,system-ui,sans-serif;border-radius:9px;padding:10px 18px;cursor:pointer;border:1px solid transparent}
-  .av-btn.ghost{background:none;border-color:#2a3140;color:#8b93a3}.av-btn.ghost:hover{color:#d8dde6;border-color:#3a4252}
-  .av-btn.test{background:#74d0d6;color:#0f1218;font-weight:600}
-  .av-btn.go{background:var(--ok,#2d7a4f);color:#fff;font-weight:600}
+  .av-btn.ghost{background:none;border-color:#2a3140;color:#8b93a3}
+  .av-btn.test{background:none;border-color:#2a3140;color:#8b93a3;font-weight:600}
+  .av-btn.go{background:none;border-color:#2a3140;color:#8b93a3;font-weight:600}
   .av-btn.fail{background:#e0796f;color:#0f1218;font-weight:600}
   .av-btn.danger{background:#e0796f;color:#0f1218;font-weight:600}
-  .av-btn.save{background:var(--ok,#2d7a4f);color:#fff;font-weight:600}
+  .av-btn.save{background:none;border-color:#2a3140;color:#8b93a3;font-weight:600}
   .av-btn:hover{filter:brightness(1.07)}.av-btn:disabled{opacity:.55;cursor:wait;filter:none}
+  /* Hover unifie des boutons neutres (ghost/save/go) : remplissage accent + texte blanc */
+  .av-btn.ghost:hover,.av-btn.save:hover,.av-btn.go:hover,.av-btn.test:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b);filter:none}
+  /* Hover des elements ENCORE orange (onglet actif, bouton login, + accent) : on fonce l'accent */
+  .cfg-tab.active:hover,.lg-btn:hover{background:color-mix(in srgb,var(--ok,#e0892b) 85%,#000);filter:none}
+  .av-tbtn.accent:hover{background:color-mix(in srgb,var(--ok,#e0892b) 85%,#000);color:#fff;border-color:transparent;filter:none}
+  /* Bouton "Se deconnecter" : hover ROUGE pour signaler la sortie (id = priorite sur les hovers orange) */
+  #av-logout:hover{background:var(--ko,#e0796f);color:#fff;border-color:var(--ko,#e0796f);filter:none}
+  /* Bouton "Parcourir..." de l'input fichier (favicon) */
+  input[type=file]::file-selector-button{font:500 13px Inter,system-ui,sans-serif;padding:7px 14px;margin-right:12px;border:1px solid var(--border,#3a4252);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+  input[type=file]::-webkit-file-upload-button{font:500 13px Inter,system-ui,sans-serif;padding:7px 14px;margin-right:12px;border:1px solid var(--border,#3a4252);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+  input[type=file]::file-selector-button:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}
+  input[type=file]::-webkit-file-upload-button:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}
   .av-msg{margin:0 20px;font-size:13.5px;color:#cfd5df}
   .av-result{margin:14px 20px 0;border-radius:10px;padding:12px 14px;font-size:13px;display:none}
   .av-result.show{display:block}
-  .av-result.ok{background:rgba(127,207,159,.1);border:1px solid #7fcf9f;color:#bfe6cd}
-  .av-result.ko{background:rgba(224,121,111,.1);border:1px solid #e0796f;color:#f0c3bd}
+  .av-result.ok{background:rgba(74,222,128,.13);border:1px solid #4ade80;color:#9af2bb}
+  .av-result.ko{background:rgba(224,121,111,.16);border:1px solid #e0796f;color:#ff9d92}
   .av-result pre{margin:8px 0 0;font:12px/1.5 'JetBrains Mono',monospace;color:#cfd5df;white-space:pre-wrap;max-height:240px;overflow:auto}
   .av-fav{display:flex;align-items:center;gap:12px}
   .av-fav img{width:40px;height:40px;border-radius:9px;border:1px solid #2a3140;object-fit:cover;background:#1c222e}
   .av-actions{display:inline-flex;gap:6px;vertical-align:middle;white-space:nowrap}
   .av-act{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;
     border:1px solid #2a3140;background:#1c222e;color:#8b93a3;cursor:pointer;padding:0;transition:.12s}
-  .av-act:hover{color:var(--ok,#e0892b);border-color:var(--ok,#e0892b)}.av-act.on{color:var(--ok,#e0892b)}.av-act.off{color:#6b7383}
+  .av-actions .av-act:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}.av-act.on{color:var(--ok,#e0892b)}.av-act.off{color:#6b7383}
   .av-act.ed{color:#74d0d6}.av-act.de{color:#e0796f}
   @media(max-width:520px){.av-row{flex-direction:column;gap:0}}
   `;
@@ -134,7 +154,7 @@
   // thème sombre : surcharge des variables CSS du dashboard + correctifs hover
   var ds = document.createElement("style");
   ds.textContent = `
-  html.av-dark{--bg:#14171c;--border:#2a2f37;--text:#e6eaf1;--dim:#8b93a3;--ko:#e0796f;--alert:#d6a86a;--row-ko-bg:#2a1d1d;}
+  html.av-dark{--bg:#14171c;--border:#2a2f37;--text:#e6eaf1;--dim:#8b93a3;--ko:#e0796f;--good:#4ade80;--alert:#d6a86a;--row-ko-bg:#2a1d1d;}
   html.av-dark tbody tr:hover td{background:var(--row-hover,#283142) !important;}
   html.av-dark tr.row-ko:hover td{background:#321f1f !important;}
   html.av-dark tr.row-disabled:hover td{background:var(--row-hover,#283142) !important;}
@@ -180,14 +200,17 @@
   html:not(.av-dark) .av-field label,html:not(.av-dark) .av-hint,html:not(.av-dark) .av-check small,html:not(.av-dark) .av-x{color:#6b6560}
   html:not(.av-dark) .av-field input,html:not(.av-dark) .av-field select,html:not(.av-dark) .av-field textarea{background:#f4f1ea;border-color:#e2ddd6;color:#1a1a1a}
   html:not(.av-dark) .av-check span,html:not(.av-dark) .av-ac-item b{color:#1a1a1a}
-  html:not(.av-dark) .av-btn.ghost{border-color:#ddd6cb;color:#6b6560}
+  html:not(.av-dark) .av-btn.ghost,html:not(.av-dark) .av-btn.save,html:not(.av-dark) .av-btn.go,html:not(.av-dark) .av-btn.test{border-color:#ddd6cb;color:#6b6560}
+  html:not(.av-dark) .av-btn.ghost:hover,html:not(.av-dark) .av-btn.save:hover,html:not(.av-dark) .av-btn.go:hover,html:not(.av-dark) .av-btn.test:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}
   html:not(.av-dark) .av-ac{background:#fff;border-color:#e2ddd6}
   html:not(.av-dark) .av-ac-item:hover,html:not(.av-dark) .av-ac-item.hl{background:#f0ece4}
   html:not(.av-dark) .av-act{background:#f4f1ea;border-color:#e2ddd6}
+  html:not(.av-dark) .av-actions .av-act:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}
   html:not(.av-dark) .av-tbtn{color:#6b6560;border-color:#d8d2c8;background:#efece6}
-  html:not(.av-dark) .av-tbtn:hover{color:#1a1a1a;border-color:#b9b2a6}
+  html:not(.av-dark) .av-tbtn:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}
   html:not(.av-dark) .av-summary{background:rgba(45,122,79,.08)}
-  html:not(.av-dark) .av-result.ok{background:rgba(45,122,79,.08);color:#2d7a4f}
+  html:not(.av-dark) .av-result.ok{background:rgba(21,128,61,.10);border-color:#15803d;color:#136a33}
+  html:not(.av-dark) .av-result.ko{background:rgba(192,57,43,.09);border-color:#c0392b;color:#a83124}
   html:not(.av-dark) .av-result pre{color:#3a3a3a}`;
   document.head.appendChild(lm);
 
@@ -206,6 +229,17 @@
   html:not(.av-dark) .av-sw-ic.sun{color:#8a6d2f}
   html:not(.av-dark) .av-sw-ic.moon{color:#a59f93}
 
+  .av-coltheme{display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin:6px 0 4px}
+  .av-ct-item{display:flex;align-items:center;gap:11px}
+  .av-ct-item>label{margin:0;font-size:13px;color:#d8dde6;cursor:pointer;white-space:nowrap}
+  html:not(.av-dark) .av-ct-item>label{color:#1a1a1a}
+  .av-ct-color{-webkit-appearance:none;-moz-appearance:none;appearance:none;width:48px;height:30px;padding:2px;
+    border:1px solid var(--border,#2a3140);border-radius:7px;background:transparent;cursor:pointer;flex:0 0 auto}
+  .av-ct-color:hover{border-color:var(--ok,#e0892b)}
+  .av-ct-color::-webkit-color-swatch-wrapper{padding:0}
+  .av-ct-color::-webkit-color-swatch{border:none;border-radius:4px}
+  .av-ct-color::-moz-color-swatch{border:none;border-radius:4px}
+
   .cfg-page{position:fixed;inset:0;z-index:9990;display:none;overflow:auto;background:#14171d;color:#e6e9ef;font-family:inherit}
   html:not(.av-dark) .cfg-page{background:#f3f0e9;color:#23211d}
   .cfg-page.open{display:block}
@@ -216,14 +250,19 @@
   html:not(.av-dark) .cfg-brand{color:#b07d2a}
   .cfg-brand img{width:52px;height:52px;object-fit:contain;background:transparent;border:0}
   .cfg-nav{display:flex;flex-direction:column;gap:3px;flex:1}
-  .cfg-tab{text-align:left;padding:10px 13px;border-radius:9px;border:0;background:transparent;color:#aeb6c2;cursor:pointer;font-size:14px;font-family:inherit}
-  .cfg-tab:hover{background:#1d2430;color:#fff}
+  .cfg-tab{text-align:left;padding:10px 13px;border-radius:9px;border:1px solid transparent;background:transparent;color:#aeb6c2;cursor:pointer;font-size:14px;font-family:inherit}
+  .cfg-tab:not(.active):hover{background:color-mix(in srgb,var(--ok,#e0892b) 12%,transparent);border-color:var(--ok,#e0892b);color:var(--ok,#e0892b)}
   .cfg-tab.active{background:var(--ok,#2d7a4f);color:#fff;font-weight:600}
   html:not(.av-dark) .cfg-tab{color:#6b6560}
-  html:not(.av-dark) .cfg-tab:hover{background:#eae5db;color:#1a1a1a}
+  html:not(.av-dark) .cfg-tab.active{color:#fff;font-weight:600}
+  html:not(.av-dark) .cfg-tab:not(.active):hover{background:color-mix(in srgb,var(--ok,#e0892b) 12%,transparent);border-color:var(--ok,#e0892b);color:var(--ok,#e0892b)}
   .cfg-back{margin-top:10px;width:100%}
+  .av-btn.cfg-back:hover{background:var(--ok,#e0892b);color:#fff;border-color:var(--ok,#e0892b)}
   .cfg-main{flex:1;min-width:0;padding:28px 34px 60px}
   .cfg-sec{display:none}.cfg-sec.active{display:block}
+  .al-block{border:1px solid var(--border,#2a3140);border-radius:10px;padding:13px 14px;margin:0 0 14px}
+  .al-set{font-size:11px;opacity:.7;font-weight:400}
+  .al-set.on{color:var(--good,#22c55e);opacity:.95}
   .cfg-sec h2{margin:0 0 18px;font-size:19px}
   .cfg-pre{background:#0e1014;color:#cdd3dc;border:1px solid #2a3140;border-radius:10px;padding:12px 14px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;max-height:62vh;overflow:auto;margin:0}
   html:not(.av-dark) .cfg-pre{background:#fbfaf6;color:#33312c;border-color:#e0dacd}
@@ -247,16 +286,15 @@
   #se-css{width:100%;box-sizing:border-box;background:#0e1014;color:#cdd3dc;border:1px solid #2a3140;border-radius:9px;padding:10px 12px;font:12.5px/1.5 ui-monospace,monospace;resize:vertical}
   html:not(.av-dark) #se-css{background:#fbfaf6;color:#33312c;border-color:#e0dacd}
   .av-switch-row{display:flex;align-items:center;gap:10px;cursor:pointer}
-  .av-colgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:12px;transition:opacity .15s}
-  .av-colgrid.off{opacity:.4;pointer-events:none;filter:grayscale(.5)}
-  .av-colgrid input[type=color]{width:100%;height:38px;padding:2px;cursor:pointer}
-  @media (max-width:640px){ .av-colgrid{grid-template-columns:repeat(2,1fr)} }
   .cfg-main .av-result{position:static;margin:0 0 16px}
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var Malinois_VER="80";
-  try{ console.log("Malinois addsite v"+Malinois_VER); }catch(e){}
+  var MALINOIS_VER="123";          // numéro de build interne (incrémenté à chaque livraison)
+  var APP_VERSION=(parseInt(MALINOIS_VER,10)/100).toFixed(2);  // version affichée = build/100 (ex. 102 -> 1.02)
+  var alertsCfg=null;             // dernière config alertes connue (pour notifs navigateur)
+  var _brPrevFailed=null;         // mémoire des sites en échec (notifs navigateur, anti-spam côté client)
+  try{ console.log("MALINOIS addsite v"+MALINOIS_VER+" (app "+APP_VERSION+")"); }catch(e){}
   function el(html){var d=document.createElement("div");d.innerHTML=html.trim();return d.firstChild;}
   function post(url,obj,timeoutMs){
     var ctrl = (typeof AbortController!=="undefined") ? new AbortController() : null;
@@ -289,9 +327,10 @@
   var bAdd = el('<button class="av-tbtn accent" type="button" title="Ajouter un site"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>');
   var bSettings = el('<button class="av-tbtn" type="button" title="Configuration">'+ICON.gear+'</button>');
   tools.appendChild(themeSwitch); tools.appendChild(bAdd); tools.appendChild(bSettings);
-  var bLogout = el('<button class="av-tbtn" type="button" title="Se déconnecter" style="display:none">'+ICON.logout+'</button>');
+  var bLogout = el('<button class="av-tbtn" id="av-logout" type="button" title="Se déconnecter" style="display:none">'+ICON.logout+'</button>');
   tools.appendChild(bLogout);
   bLogout.addEventListener("click", function(){ post("/auth/logout",{}).then(function(){ location.reload(); }); });
+  (function(){ var av=document.getElementById("app-ver"); if(av) av.textContent="Version : "+APP_VERSION; })();
 
   var dashLogo = document.getElementById("dash-logo");
   var dashTitle = document.getElementById("dash-title");
@@ -303,7 +342,7 @@
   function applySettings(s){
     settings = s || settings;
     if (dashTitle && settings.name){ dashTitle.textContent = settings.name; document.title = settings.name; }
-    if (settings.accent) document.documentElement.style.setProperty("--ok", settings.accent);
+    if (settings.accent) document.documentElement.style.setProperty("--ok", settings.accent, "important");
     document.documentElement.classList.toggle("av-dark", !!settings.dark);
     var _cb=document.getElementById("av-theme-cb"); if(_cb) _cb.checked = !!settings.dark;
     var _uc=document.getElementById("av-usercss");
@@ -324,6 +363,170 @@
     return fetch("/settings").then(function(r){return r.json();}).then(function(j){
       if (j && j.ok) applySettings(j.settings);
     }).catch(function(){});
+  }
+
+  // --- Planification (cron) ---
+  function cronOpts(){
+    var dows=[]; SQ("#cr-dows").querySelectorAll(".cr-dow").forEach(function(c){ if(c.checked) dows.push(parseInt(c.value,10)); });
+    return { hour:parseInt(SQ("#cr-hour").value,10)||0, minute:parseInt(SQ("#cr-min").value,10)||0,
+             mode:SQ("#cr-mode").value, interval_days:parseInt(SQ("#cr-intv").value,10)||1, weekdays:dows };
+  }
+  function cronExpr(o){
+    var mn=Math.max(0,Math.min(59,o.minute)), hr=Math.max(0,Math.min(23,o.hour));
+    if(o.mode==="weekdays"){ var d=(o.weekdays&&o.weekdays.length)?o.weekdays.slice().sort().join(","):"*"; return mn+" "+hr+" * * "+d; }
+    if(o.mode==="daily") return mn+" "+hr+" * * *";
+    return mn+" "+hr+" */"+Math.max(1,o.interval_days)+" * *";
+  }
+  function cronPreview(){
+    var o=cronOpts();
+    SQ("#cr-intvwrap").style.display=(o.mode==="interval")?"inline":"none";
+    SQ("#cr-dows").style.display=(o.mode==="weekdays")?"flex":"none";
+    SQ("#cr-preview").textContent=cronExpr(o);
+  }
+  function fillCron(c){
+    c=c||{};
+    if(c.hour!=null) SQ("#cr-hour").value=c.hour;
+    if(c.minute!=null) SQ("#cr-min").value=c.minute;
+    SQ("#cr-mode").value=c.mode||"interval";
+    if(c.interval_days) SQ("#cr-intv").value=c.interval_days;
+    var set={}; (c.weekdays||[]).forEach(function(d){ set[d]=1; });
+    SQ("#cr-dows").querySelectorAll(".cr-dow").forEach(function(cb){ cb.checked=!!set[parseInt(cb.value,10)]; });
+    cronPreview();
+  }
+  function loadCron(){
+    SQ("#cr-current").textContent="…"; SQ("#cr-msg").textContent="";
+    fetch("/cron").then(function(r){return r.json();}).then(function(j){
+      if(j&&j.ok){ fillCron(j.cron); SQ("#cr-current").textContent=j.line||"(aucune tâche planifiée)"; }
+      else { cronPreview(); SQ("#cr-current").textContent="(indisponible)"; }
+    }).catch(function(){ cronPreview(); SQ("#cr-current").textContent="(service injoignable)"; });
+  }
+  function bindCron(){
+    ["#cr-hour","#cr-min","#cr-mode","#cr-intv"].forEach(function(s){ SQ(s).addEventListener("input",cronPreview); SQ(s).addEventListener("change",cronPreview); });
+    SQ("#cr-dows").querySelectorAll(".cr-dow").forEach(function(c){ c.addEventListener("change",cronPreview); });
+    SQ("#cr-save").addEventListener("click", function(){
+      var btn=this, o=cronOpts();
+      if(o.mode==="weekdays" && !o.weekdays.length){ SQ("#cr-msg").style.color="var(--ko,#e0796f)"; SQ("#cr-msg").textContent="Choisis au moins un jour."; return; }
+      btn.disabled=true; SQ("#cr-msg").textContent="";
+      post("/cron", o).then(function(j){
+        btn.disabled=false;
+        if(j&&j.ok){ SQ("#cr-current").textContent=j.line||"(aucune)"; SQ("#cr-msg").style.color="var(--good,#22c55e)"; SQ("#cr-msg").textContent="Planification enregistrée."; }
+        else { SQ("#cr-msg").style.color="var(--ko,#e0796f)"; SQ("#cr-msg").textContent="Erreur : "+((j&&j.error)||""); }
+      }).catch(function(){ btn.disabled=false; SQ("#cr-msg").style.color="var(--ko,#e0796f)"; SQ("#cr-msg").textContent="Service injoignable."; });
+    });
+  }
+
+  function alSet(sel, on){ var e=SQ(sel); if(!e) return; e.textContent=on?"✓ déjà défini":""; e.className="al-set"+(on?" on":""); }
+  function fillAlerts(a){
+    a=a||{}; alertsCfg=a;
+    var em=a.email||{}, tg=a.telegram||{}, wh=a.webhook||{}, br=a.browser||{};
+    SQ("#al-em-on").checked=!!em.enabled;
+    SQ("#al-em-host").value=em.host||""; SQ("#al-em-port").value=em.port||"";
+    SQ("#al-em-sec").value=em.security||"starttls";
+    SQ("#al-em-user").value=em.user||""; SQ("#al-em-from").value=em.from||""; SQ("#al-em-to").value=em.to||"";
+    SQ("#al-em-pass").value=""; alSet("#al-em-pwset", em.password_set);
+    SQ("#al-tg-on").checked=!!tg.enabled;
+    SQ("#al-tg-chat").value=tg.chat_id||""; SQ("#al-tg-token").value=""; alSet("#al-tg-tokset", tg.token_set);
+    SQ("#al-wh-on").checked=!!wh.enabled;
+    SQ("#al-wh-url").value=wh.url||""; SQ("#al-wh-auth").value=""; alSet("#al-wh-authset", wh.auth_set);
+    if(SQ("#al-br-on")){ SQ("#al-br-on").checked=!!br.enabled; brUpdateMsg(); }
+    SQ("#al-onfail").checked=!!a.on_failure;
+    SQ("#al-onrecover").checked=!!a.on_recovery;
+    SQ("#al-oneach").checked=!!a.on_each_run;
+    if(SQ("#al-onstatsna")) SQ("#al-onstatsna").checked=!!a.on_stats_na;
+  }
+  function chPayload(ch){
+    if(ch==="email") return {channel:"email", email:{ enabled:SQ("#al-em-on").checked, host:SQ("#al-em-host").value.trim(),
+        port:SQ("#al-em-port").value.trim(), security:SQ("#al-em-sec").value, user:SQ("#al-em-user").value.trim(),
+        password:SQ("#al-em-pass").value, from:SQ("#al-em-from").value.trim(), to:SQ("#al-em-to").value.trim() }};
+    if(ch==="telegram") return {channel:"telegram", telegram:{ enabled:SQ("#al-tg-on").checked,
+        token:SQ("#al-tg-token").value.trim(), chat_id:SQ("#al-tg-chat").value.trim() }};
+    if(ch==="webhook") return {channel:"webhook", webhook:{ enabled:SQ("#al-wh-on").checked,
+        url:SQ("#al-wh-url").value.trim(), auth:SQ("#al-wh-auth").value }};
+    return {};
+  }
+  function chMsg(sel, txt, ok){ var m=SQ(sel); if(!m) return; m.style.color=(ok===true)?"var(--good,#22c55e)":((ok===false)?"var(--ko,#e0796f)":""); m.textContent=txt; }
+  function saveChannel(ch, msgSel, btn){
+    btn.disabled=true; chMsg(msgSel, "Enregistrement…", null);
+    post("/alerts", chPayload(ch)).then(function(j){
+      btn.disabled=false;
+      if(j&&j.ok){ if(j.alerts) fillAlerts(j.alerts); chMsg(msgSel, "✓ enregistré", true); }
+      else { chMsg(msgSel, "✗ "+((j&&j.error)||"erreur"), false); }
+    }).catch(function(){ btn.disabled=false; chMsg(msgSel, "Service injoignable.", false); });
+  }
+  function testChannel(ch, msgSel, btn){
+    var p=chPayload(ch); p.save=true;
+    btn.disabled=true; chMsg(msgSel, "Test en cours…", null);
+    post("/alerts/test", p).then(function(j){
+      btn.disabled=false;
+      if(j&&j.ok){ chMsg(msgSel, "✓ "+(j.detail||"OK"), true); loadAlerts(); }
+      else { chMsg(msgSel, "✗ "+((j&&(j.detail||j.error))||"échec"), false); }
+    }).catch(function(){ btn.disabled=false; chMsg(msgSel, "Service injoignable.", false); });
+  }
+  function saveTypes(){
+    post("/alerts", {types:true, on_failure:SQ("#al-onfail").checked,
+      on_recovery:SQ("#al-onrecover").checked, on_each_run:SQ("#al-oneach").checked,
+      on_stats_na:(SQ("#al-onstatsna")?SQ("#al-onstatsna").checked:false)})
+      .then(function(j){ if(j&&j.ok&&j.alerts) alertsCfg=j.alerts; }).catch(function(){});
+  }
+  /* --- notifications navigateur (côté client) --- */
+  function brSupported(){ return ("Notification" in window); }
+  function brUpdateMsg(){
+    var m=SQ("#al-br-msg"); if(!m) return;
+    if(!brSupported()){ m.style.color="var(--ko,#e0796f)"; m.textContent="Non supporté par ce navigateur."; return; }
+    if(Notification.permission==="granted"){ m.style.color="var(--good,#22c55e)"; m.textContent="Autorisé sur ce navigateur."; }
+    else if(Notification.permission==="denied"){ m.style.color="var(--ko,#e0796f)"; m.textContent="Bloqué — à réautoriser dans les réglages du navigateur."; }
+    else { m.style.color=""; m.textContent="Autorisation pas encore accordée (sera demandée à l'activation)."; }
+  }
+  function brSave(enabled){ post("/alerts", {browser:{enabled:enabled}}).then(function(j){ if(j&&j.ok&&j.alerts) alertsCfg=j.alerts; }).catch(function(){}); }
+  function brTest(){
+    var m=SQ("#al-br-msg");
+    if(!brSupported()){ brUpdateMsg(); return; }
+    function fire(){ try{ new Notification("Malinois", {body:"Notification de test ✓"}); if(m){ m.style.color="var(--good,#22c55e)"; m.textContent="✓ notification envoyée"; } }catch(e){ if(m){ m.style.color="var(--ko,#e0796f)"; m.textContent="Erreur : "+e; } } }
+    if(Notification.permission==="granted"){ fire(); }
+    else { Notification.requestPermission().then(function(p){ brUpdateMsg(); if(p==="granted") fire(); }); }
+  }
+  function alMsg(txt, ok){ var m=SQ("#al-msg"); m.style.color=ok?"var(--good,#22c55e)":"var(--ko,#e0796f)"; m.textContent=txt; }
+  function loadAlerts(){
+    fetch("/alerts").then(function(r){return r.json();}).then(function(j){
+      if(j&&j.ok) fillAlerts(j.alerts);
+    }).catch(function(){});
+  }
+  function bindAlerts(){
+    SQ("#al-em-save").addEventListener("click", function(){ saveChannel("email", "#al-em-msg", this); });
+    SQ("#al-tg-save").addEventListener("click", function(){ saveChannel("telegram", "#al-tg-msg", this); });
+    SQ("#al-wh-save").addEventListener("click", function(){ saveChannel("webhook", "#al-wh-msg", this); });
+    SQ("#al-em-test").addEventListener("click", function(){ testChannel("email", "#al-em-msg", this); });
+    SQ("#al-tg-test").addEventListener("click", function(){ testChannel("telegram", "#al-tg-msg", this); });
+    SQ("#al-wh-test").addEventListener("click", function(){ testChannel("webhook", "#al-wh-msg", this); });
+    ["#al-onfail","#al-onrecover","#al-oneach","#al-onstatsna"].forEach(function(s){ if(SQ(s)) SQ(s).addEventListener("change", saveTypes); });
+    SQ("#al-br-on").addEventListener("change", function(){
+      var on=this.checked, self=this;
+      if(on && brSupported() && Notification.permission!=="granted"){
+        Notification.requestPermission().then(function(p){ brUpdateMsg();
+          if(p==="granted"){ brSave(true); } else { self.checked=false; brSave(false); } });
+      } else { brUpdateMsg(); brSave(on); }
+    });
+    SQ("#al-br-test").addEventListener("click", brTest);
+    SQ("#al-test").addEventListener("click", function(){
+      var btn=this; btn.disabled=true; alMsg("Envoi du test…", true);
+      post("/alerts/test", {}).then(function(j){
+        btn.disabled=false;
+        if(j&&j.ok){ alMsg("Test envoyé ✓  ("+(j.detail||"")+")", true); }
+        else { alMsg("Échec : "+((j&&(j.detail||j.error))||"inconnue"), false); }
+      }).catch(function(){ btn.disabled=false; alMsg("Service injoignable.", false); });
+    });
+  }
+  function browserNotifyCheck(status){
+    try{
+      if(!alertsCfg || !alertsCfg.browser || !alertsCfg.browser.enabled) return;
+      if(!brSupported() || Notification.permission!=="granted") return;
+      var sites=(status&&status.sites)||[];
+      var failed=sites.filter(function(s){return !s.ok;}).map(function(s){return s.name||s.slug||"?";});
+      if(_brPrevFailed===null){ _brPrevFailed=failed; return; }
+      var nw=failed.filter(function(f){return _brPrevFailed.indexOf(f)<0;});
+      if(nw.length){ try{ new Notification("Malinois — site en échec", {body:nw.join(", ")}); }catch(e){} }
+      _brPrevFailed=failed;
+    }catch(e){}
   }
 
   themeSwitch.querySelector("#av-theme-cb").addEventListener("change", function(){
@@ -366,7 +569,7 @@
     <div class="lg-card" role="dialog" aria-modal="true" aria-label="Connexion">
       <div class="lg-brand">
         <img class="lg-logo" id="lg-logo" alt="" style="display:none">
-        <div class="lg-name" id="lg-name">Malinois</div>
+        <div class="lg-name" id="lg-name">MALINOIS</div>
         <div class="lg-sub">Accès au tableau de bord</div>
       </div>
       <div class="lg-field"><label>Mot de passe</label><input id="lg-pass" type="password" autocomplete="current-password"></div>
@@ -378,33 +581,15 @@
   </div>`);
   document.body.appendChild(loginOv);
   function LQ(s){ return loginOv.querySelector(s); }
-  var setupMode=false;   // true = premier lancement : on DÉFINIT le mot de passe au lieu de se connecter
-  function showLogin(setup){
-    setupMode=!!setup;
+  function showLogin(){
     var ic=document.querySelector('link[rel*="icon"]'); var lo=LQ("#lg-logo");
     if(ic&&ic.href){ lo.src=ic.href; lo.style.display="block"; }
     var t=(document.title||"").split("—")[0].trim(); if(t) LQ("#lg-name").textContent=t;
-    LQ("#lg-pass").setAttribute("autocomplete", setupMode?"new-password":"current-password");
-    LQ("#lg-go").textContent = setupMode?"Définir le mot de passe":"Se connecter";
-    LQ("#lg-codefield").style.display="none";
-    var rem=LQ("#lg-remember").parentNode; if(rem) rem.style.display=setupMode?"none":"";
-    LQ("#lg-result").className="lg-msg";
-    LQ("#lg-result").textContent=setupMode?"Aucun mot de passe défini : protège l'instance avant d'aller plus loin (8 caractères min).":"";
     loginOv.classList.add("open"); setTimeout(function(){ LQ("#lg-pass").focus(); }, 50);
   }
   function updateAuthBtn(){ bLogout.style.display = (authState.configured && authState.authed) ? "flex" : "none"; }
   function doLogin(){
-    var btn=LQ("#lg-go");
-    if(setupMode){
-      btn.disabled=true; btn.textContent="…";
-      post("/auth/password",{new:LQ("#lg-pass").value}).then(function(j){
-        btn.disabled=false; btn.textContent="Définir le mot de passe";
-        if(j.ok){ loginOv.classList.remove("open"); authState.configured=true; authState.authed=true; setupMode=false; updateAuthBtn(); init2(); }
-        else { LQ("#lg-result").className="lg-msg ko"; LQ("#lg-result").textContent=j.error||"Échec."; }
-      }).catch(function(){ btn.disabled=false; btn.textContent="Définir le mot de passe"; LQ("#lg-result").className="lg-msg ko"; LQ("#lg-result").textContent="Service injoignable."; });
-      return;
-    }
-    btn.disabled=true; btn.textContent="…";
+    var btn=LQ("#lg-go"); btn.disabled=true; btn.textContent="…";
     post("/auth/login",{password:LQ("#lg-pass").value, code:LQ("#lg-code").value, remember:LQ("#lg-remember").checked}).then(function(j){
       btn.disabled=false; btn.textContent="Se connecter";
       if(j.ok){ loginOv.classList.remove("open"); authState.authed=true; updateAuthBtn(); init2(); }
@@ -424,10 +609,12 @@
         <div class="cfg-brand"><img id="cfg-logo" alt="" src="/favicon.png?v=0" onerror="this.style.display='none'"><span>Configuration</span></div>
         <nav class="cfg-nav">
           <button class="cfg-tab active" type="button" data-tab="apparence">Apparence</button>
+          <button class="cfg-tab" type="button" data-tab="cron">Planification</button>
           <button class="cfg-tab" type="button" data-tab="logs">Logs</button>
           <button class="cfg-tab" type="button" data-tab="icones">Icônes</button>
           <button class="cfg-tab" type="button" data-tab="stats">Statistiques</button>
           <button class="cfg-tab" type="button" data-tab="securite">Sécurité</button>
+          <button class="cfg-tab" type="button" data-tab="alertes">Alertes</button>
         </nav>
         <button class="av-btn ghost cfg-back" type="button" id="cfg-back">← Retour au dashboard</button>
       </aside>
@@ -436,20 +623,51 @@
 
         <section class="cfg-sec active" data-sec="apparence">
           <h2>Apparence & général</h2>
-          <div class="av-field"><label>Nom du dashboard</label><input id="se-name" type="text" placeholder="Malinois"></div>
+          <div class="av-field"><label>Nom du dashboard</label><input id="se-name" type="text" placeholder="MALINOIS"></div>
           <div class="av-field"><label>URL du site (lien du titre, optionnel)</label><input id="se-url" type="text" placeholder="https://…"></div>
           <div class="av-field"><label>Logo / favicon (favicon généré automatiquement)</label>
-            <div class="av-fav"><img id="se-favimg" alt="" src="/favicon.png?v=0" onerror="this.style.visibility='hidden'"><input id="se-favfile" type="file" accept="image/*"></div></div>
-          <div class="av-row">
-            <div class="av-field"><label>Couleur d'accent</label><input id="se-accent" type="color" value="#2d7a4f"></div>
-            <div class="av-field"><label>Fréquence (cron)</label>
-              <select id="se-cron"><option value="24">Toutes les 24 h</option><option value="48">Toutes les 48 h</option><option value="72">Toutes les 72 h</option></select></div>
+            <div class="av-fav"><img id="se-favimg" alt="" src="/favicon.png?v=0" onerror="this.style.visibility='hidden'"><input id="se-favfile" type="file" accept="image/*"></div>
+            <button class="av-btn ghost" type="button" id="se-favdel" style="margin-top:8px;display:none">Supprimer le logo</button></div>
+          <div class="av-coltheme">
+            <div class="av-ct-item"><label for="se-accent">Colorisation</label><input id="se-accent" type="color" value="#2d7a4f" class="av-ct-color"></div>
+            <div class="av-ct-item"><label for="se-dark">Thème sombre par défaut</label><label class="av-switch"><input type="checkbox" id="se-dark"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></label></div>
           </div>
-          <label class="av-check"><input type="checkbox" id="se-dark"><span>Thème sombre par défaut</span></label>
           <div class="av-field" style="margin-top:16px"><label>CSS personnalisé (avancé)</label>
-            <textarea id="se-css" rows="7" spellcheck="false" placeholder=":root{ --ok:#2d7a4f; }"></textarea>
+            <textarea id="se-css" rows="7" spellcheck="false" placeholder=":root{ --ok:#e0892b; }"></textarea>
             <p class="av-hint">Injecté en direct dans la page. Laisse vide pour le style par défaut.</p></div>
           <div class="cfg-actions"><button class="av-btn save" type="button" id="se-save">Enregistrer</button></div>
+        </section>
+
+        <section class="cfg-sec" data-sec="cron">
+          <h2>Planification des visites (cron)</h2>
+          <p class="av-hint" style="margin:-8px 0 16px">Définis quand le bot effectue ses visites automatiques. La tâche est inscrite dans le crontab du conteneur.</p>
+          <div class="av-field">
+            <label>Horaire & fréquence</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
+              <span class="av-hint">À</span>
+              <input id="cr-hour" type="number" min="0" max="23" value="6" style="width:64px;background:rgba(130,130,130,.08);border:1px solid var(--border);border-radius:8px;padding:7px 8px;color:inherit;font:13px ui-monospace,monospace">
+              <span class="av-hint">h</span>
+              <input id="cr-min" type="number" min="0" max="59" value="0" style="width:64px;background:rgba(130,130,130,.08);border:1px solid var(--border);border-radius:8px;padding:7px 8px;color:inherit;font:13px ui-monospace,monospace">
+              <select id="cr-mode" style="background:rgba(130,130,130,.08);border:1px solid var(--border);border-radius:8px;padding:7px 8px;color:inherit">
+                <option value="interval">tous les N jours</option>
+                <option value="daily">tous les jours</option>
+                <option value="weekdays">jours choisis</option>
+              </select>
+              <span id="cr-intvwrap" class="av-hint">tous les <input id="cr-intv" type="number" min="1" max="60" value="1" style="width:56px;background:rgba(130,130,130,.08);border:1px solid var(--border);border-radius:8px;padding:7px 8px;color:inherit;font:13px ui-monospace,monospace"> jour(s)</span>
+            </div>
+            <div id="cr-dows" style="display:none;gap:8px;flex-wrap:wrap;margin-top:8px">
+              <label class="av-check" style="margin:0"><input type="checkbox" class="cr-dow" value="1"><span>Lun</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="cr-dow" value="2"><span>Mar</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="cr-dow" value="3"><span>Mer</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="cr-dow" value="4"><span>Jeu</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="cr-dow" value="5"><span>Ven</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="cr-dow" value="6"><span>Sam</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="cr-dow" value="0"><span>Dim</span></label>
+            </div>
+            <p class="av-hint" style="margin:14px 0 0">Aperçu : <code id="cr-preview" style="background:rgba(130,130,130,.12);padding:2px 6px;border-radius:5px">—</code></p>
+            <p class="av-hint" style="margin:4px 0 0">Crontab actif : <code id="cr-current" style="background:rgba(130,130,130,.12);padding:2px 6px;border-radius:5px">—</code></p>
+          </div>
+          <div class="cfg-actions"><button class="av-btn save" type="button" id="cr-save">Enregistrer la planification</button><span id="cr-msg" class="av-hint" style="margin-left:8px"></span></div>
         </section>
 
         <section class="cfg-sec" data-sec="logs">
@@ -477,7 +695,13 @@
           <h2>Sécurité (connexion + 2FA)</h2>
           <div id="se-pwblock">
             <div class="av-field" id="se-curblock" style="display:none"><label>Mot de passe actuel</label><input id="se-cur" type="password" autocomplete="current-password"></div>
-            <div class="av-field"><label id="se-newlabel">Définir un mot de passe</label><input id="se-new" type="password" autocomplete="new-password" placeholder="min. 4 caractères"></div>
+            <div class="av-field"><label id="se-newlabel">Définir un mot de passe</label><input id="se-new" type="password" autocomplete="new-password" placeholder="min. 8 caractères"></div>
+            <div id="se-pwmeter" style="margin:-4px 0 12px;display:none">
+              <div style="height:6px;border-radius:4px;background:rgba(130,130,130,.18);overflow:hidden"><div id="se-pwbar" style="height:100%;width:0;border-radius:4px;transition:width .2s ease,background .2s ease"></div></div>
+              <p class="av-hint" id="se-pwlabel" style="margin:5px 0 0"></p>
+            </div>
+            <div class="av-field"><label>Confirmer le mot de passe</label><input id="se-new2" type="password" autocomplete="new-password" placeholder="min. 8 caractères"></div>
+            <p class="av-hint" id="se-pwmatch" style="margin:-6px 0 10px"></p>
             <button class="av-btn save" type="button" id="se-pwbtn">Enregistrer le mot de passe</button>
           </div>
           <div id="se-2fablock" style="margin-top:18px;display:none">
@@ -487,18 +711,114 @@
               <div class="av-field"><label>Secret</label><input id="se-2fasecret" type="text" readonly></div>
               <div class="av-field"><label>Code de vérification</label><input id="se-2facode" inputmode="numeric" placeholder="123456"></div>
             </div>
-            <button class="av-btn test" type="button" id="se-2fabtn">Activer le 2FA</button>
+            <button class="av-btn save" type="button" id="se-2fabtn">Activer le 2FA</button>
           </div>
+          <div id="se-tlsblock" style="margin-top:22px;border-top:1px solid var(--border,#2a3140);padding-top:16px">
+            <label class="av-switch-row" style="margin-bottom:2px"><span class="av-switch"><input type="checkbox" id="se-tls-on"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>HTTPS — chiffrer l'accès au dashboard</span></label>
+            <p class="av-hint" id="se-tls-state" style="margin:4px 0 8px">…</p>
+            <div class="av-hint" id="se-tls-cert" style="margin:0 0 10px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="av-btn ghost" type="button" id="se-tls-gen">Générer un certificat local (auto-signé)</button>
+              <button class="av-btn ghost" type="button" id="se-tls-import">Importer un certificat…</button>
+              <button class="av-btn ghost" type="button" id="se-tls-certbot">Let's Encrypt (domaine public)…</button>
+            </div>
+            <div id="se-tls-certbotbox" style="display:none;margin-top:10px;border:1px solid var(--border,#2a3140);border-radius:8px;padding:12px">
+              <p class="av-hint" style="margin:0 0 10px">Nécessite un <b>vrai nom de domaine public</b> pointant vers ce conteneur, avec le <b>port 80 joignable depuis Internet</b> (validation HTTP-01). Le renouvellement est ensuite automatique.</p>
+              <div class="av-field"><label>Domaine</label><input id="se-tls-domain" type="text" spellcheck="false" placeholder="ex. malinois.mondomaine.fr"></div>
+              <div class="av-field"><label>Email (avis d'expiration Let's Encrypt)</label><input id="se-tls-email" type="email" spellcheck="false" placeholder="toi@exemple.fr"></div>
+              <label class="av-check" style="margin:2px 0 10px"><input type="checkbox" id="se-tls-staging"><span>Mode test (staging) — certificat non reconnu, pour vérifier sans consommer le quota</span></label>
+              <button class="av-btn save" type="button" id="se-tls-certbot-go">Obtenir le certificat</button>
+            </div>
+            <div id="se-tls-genbox" style="display:none;margin-top:10px;border:1px solid var(--border,#2a3140);border-radius:8px;padding:12px">
+              <p class="av-hint" style="margin:0 0 10px">Renseigne les informations du certificat auto-signé.</p>
+              <div class="av-field"><label>Nom commun (CN) — hôte principal</label><input id="se-tls-cn" type="text" spellcheck="false" placeholder="ex. malinois.lan ou l'IP"></div>
+              <div class="av-field"><label>Noms alternatifs (SAN) — IP/domaines séparés par des virgules</label><input id="se-tls-san" type="text" spellcheck="false" placeholder="ex. 192.168.0.10, malinois.lan"></div>
+              <div class="av-field"><label>Organisation (O) — optionnel</label><input id="se-tls-org" type="text" spellcheck="false" placeholder="ex. Homelab"></div>
+              <div class="av-field"><label>Pays (C) — code 2 lettres, optionnel</label><input id="se-tls-country" type="text" spellcheck="false" maxlength="2" placeholder="FR" style="max-width:90px"></div>
+              <div class="av-field"><label>Validité (jours)</label><input id="se-tls-days" type="number" min="1" max="3650" value="825" style="max-width:120px"></div>
+              <button class="av-btn save" type="button" id="se-tls-gen-go">Générer le certificat</button>
+            </div>
+            <div id="se-tls-importbox" style="display:none;margin-top:10px;border:1px solid var(--border,#2a3140);border-radius:8px;padding:12px">
+              <div class="av-field"><label>Certificat (PEM — fullchain)</label><textarea id="se-tls-cert-in" rows="4" spellcheck="false" placeholder="-----BEGIN CERTIFICATE-----&#10;…"></textarea></div>
+              <div class="av-field"><label>Clé privée (PEM)</label><textarea id="se-tls-key-in" rows="4" spellcheck="false" placeholder="-----BEGIN PRIVATE KEY-----&#10;…"></textarea></div>
+              <button class="av-btn save" type="button" id="se-tls-import-save">Valider et installer</button>
+            </div>
+            <p class="av-hint" id="se-tls-msg" style="margin:8px 0 0"></p>
+          </div>
+        </section>
+        <section class="cfg-sec" data-sec="alertes">
+          <h2>Alertes &amp; notifications</h2>
+          <p class="av-hint" style="margin:-4px 0 14px">Reçois une notification quand une visite échoue. Active un ou plusieurs canaux, puis teste l'envoi.</p>
+
+          <div class="al-block">
+            <label class="av-switch-row"><span class="av-switch"><input type="checkbox" id="al-em-on"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>E-mail (SMTP)</span></label>
+            <div style="margin-top:10px">
+              <div class="av-field"><label>Serveur SMTP</label><input id="al-em-host" type="text" spellcheck="false" placeholder="ex. smtp.gmail.com"></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <div class="av-field" style="flex:1;min-width:90px"><label>Port</label><input id="al-em-port" type="number" min="1" max="65535" placeholder="587"></div>
+                <div class="av-field" style="flex:2;min-width:150px"><label>Sécurité</label><select id="al-em-sec"><option value="starttls">STARTTLS (587)</option><option value="ssl">SSL/TLS (465)</option><option value="none">Aucune</option></select></div>
+              </div>
+              <div class="av-field"><label>Utilisateur</label><input id="al-em-user" type="text" spellcheck="false" autocomplete="off" placeholder="souvent ton adresse e-mail"></div>
+              <div class="av-field"><label>Mot de passe <span class="al-set" id="al-em-pwset"></span></label><input id="al-em-pass" type="password" autocomplete="new-password" placeholder="laisser vide pour conserver"></div>
+              <div class="av-field"><label>Expéditeur (From)</label><input id="al-em-from" type="text" spellcheck="false" placeholder="malinois@mondomaine.fr"></div>
+              <div class="av-field"><label>Destinataire(s) — séparés par des virgules</label><input id="al-em-to" type="text" spellcheck="false" placeholder="moi@exemple.fr"></div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><button class="av-btn save" type="button" id="al-em-save">Enregistrer</button><button class="av-btn ghost" type="button" id="al-em-test">Tester l'e-mail</button><span class="av-hint" id="al-em-msg"></span></div>
+            </div>
+          </div>
+
+          <div class="al-block">
+            <label class="av-switch-row"><span class="av-switch"><input type="checkbox" id="al-tg-on"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>Telegram</span></label>
+            <div style="margin-top:10px">
+              <p class="av-hint" style="margin:0 0 8px">Crée un bot via @BotFather pour le token, puis récupère ton chat_id (via @userinfobot).</p>
+              <div class="av-field"><label>Token du bot <span class="al-set" id="al-tg-tokset"></span></label><input id="al-tg-token" type="password" autocomplete="off" spellcheck="false" placeholder="laisser vide pour conserver"></div>
+              <div class="av-field"><label>Chat ID</label><input id="al-tg-chat" type="text" spellcheck="false" placeholder="ex. 123456789"></div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><button class="av-btn save" type="button" id="al-tg-save">Enregistrer</button><button class="av-btn ghost" type="button" id="al-tg-test">Tester Telegram</button><span class="av-hint" id="al-tg-msg"></span></div>
+            </div>
+          </div>
+
+          <div class="al-block">
+            <label class="av-switch-row"><span class="av-switch"><input type="checkbox" id="al-wh-on"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>Webhook / ntfy (ou passerelle SMS)</span></label>
+            <div style="margin-top:10px">
+              <p class="av-hint" style="margin:0 0 8px">POST du message (titre dans l'en-tête <code>Title</code>). Compatible ntfy et toute passerelle SMS acceptant un POST HTTP.</p>
+              <div class="av-field"><label>URL</label><input id="al-wh-url" type="text" spellcheck="false" placeholder="https://ntfy.sh/mon-topic"></div>
+              <div class="av-field"><label>En-tête Authorization <span class="al-set" id="al-wh-authset"></span> — optionnel</label><input id="al-wh-auth" type="password" autocomplete="off" spellcheck="false" placeholder="ex. Bearer xxx (laisser vide pour conserver)"></div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><button class="av-btn save" type="button" id="al-wh-save">Enregistrer</button><button class="av-btn ghost" type="button" id="al-wh-test">Tester le webhook</button><span class="av-hint" id="al-wh-msg"></span></div>
+            </div>
+          </div>
+
+          <div class="al-block">
+            <label class="av-switch-row"><span class="av-switch"><input type="checkbox" id="al-br-on"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>Notifications navigateur</span></label>
+            <div style="margin-top:10px">
+              <p class="av-hint" style="margin:0 0 8px">Affiche une notification système quand le dashboard est ouvert dans ce navigateur et qu'un site passe en échec. L'autorisation est demandée par navigateur/appareil.</p>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><button class="av-btn ghost" type="button" id="al-br-test">Tester la notification</button><span class="av-hint" id="al-br-msg"></span></div>
+            </div>
+          </div>
+
+          <div style="margin:4px 0 14px">
+            <p class="av-hint" style="margin:0 0 9px">Quelles alertes envoyer (à chaque visite planifiée ou rafraîchissement) — enregistré automatiquement :</p>
+            <label class="av-check" style="margin:0 0 7px"><input type="checkbox" id="al-onfail"><span>Un site passe en échec</span></label>
+            <label class="av-check" style="margin:0 0 7px"><input type="checkbox" id="al-onrecover"><span>Un site se rétablit (de nouveau OK)</span></label>
+            <label class="av-check" style="margin:0"><input type="checkbox" id="al-oneach"><span>Résumé après chaque visite (même sans changement)</span></label>
+            <label class="av-check" style="margin:7px 0 0"><input type="checkbox" id="al-onstatsna"><span>Statistiques non récupérées (upload = N/A — probable cookie expiré)</span></label>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="av-btn ghost" type="button" id="al-test">Tester tous les canaux actifs</button>
+          </div>
+          <p class="av-hint" id="al-msg" style="margin:10px 0 0"></p>
         </section>
       </main>
     </div>
   </div>`);
   document.body.appendChild(sov);
   function SQ(s){return sov.querySelector(s);}
+  bindCron();
+  bindAlerts();
 
   function setTab(tab){
     sov.querySelectorAll(".cfg-tab").forEach(function(x){ x.classList.toggle("active", x.getAttribute("data-tab")===tab); });
     sov.querySelectorAll(".cfg-sec").forEach(function(s){ s.classList.toggle("active", s.getAttribute("data-sec")===tab); });
+    var rr=SQ("#se-result"); if(rr){ rr.className="av-result"; rr.textContent=""; }
     if(tab!=="logs"){ stopLive(); var lv=SQ("#lg-live"); if(lv) lv.checked=false; }
     if(tab==="logs") loadLogs();
     if(tab==="stats") buildStatsList();
@@ -507,18 +827,21 @@
     fetch("/settings").then(function(r){return r.json();}).then(function(j){
       var s = (j&&j.ok)?j.settings:settings;
       SQ("#se-name").value = s.name||""; SQ("#se-url").value = s.url||"";
-      SQ("#se-accent").value = s.accent||"#e0892b"; SQ("#se-cron").value = String(s.cron_hours||24);
+      SQ("#se-accent").value = s.accent||"#e0892b";
       SQ("#se-dark").checked = !!s.dark; SQ("#se-css").value = s.css||"";
       var img=SQ("#se-favimg"); img.style.visibility = s.favicon?"visible":"hidden";
       var clogo=SQ("#cfg-logo"); if(s.favicon){ clogo.style.display="block"; clogo.src="/favicon.png?v="+Date.now(); } else clogo.style.display="none";
       if (s.favicon) img.src = "/favicon.png?v="+Date.now();
+      var favdel=SQ("#se-favdel"); if(favdel) favdel.style.display = s.favicon?"inline-flex":"none";
       SQ("#se-result").className="av-result"; SQ("#se-favfile").value="";
       refreshSecurityUI();
+      loadCron();
+      loadAlerts();
       setTab("apparence");
       sov.classList.add("open"); document.body.style.overflow="hidden";
     }).catch(function(){ sov.classList.add("open"); });
   }
-  function closeSettings(){ sov.classList.remove("open"); document.body.style.overflow=""; stopLive(); var lv=SQ("#lg-live"); if(lv) lv.checked=false; applySettings(settings); }
+  function closeSettings(){ sov.classList.remove("open"); document.body.style.overflow=""; try{ stopLive(); var lv=SQ("#lg-live"); if(lv) lv.checked=false; applySettings(settings); }catch(e){} }
   function readFile(file){ return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsDataURL(file);}); }
 
   SQ("#se-favfile").addEventListener("change", function(){
@@ -527,24 +850,37 @@
   });
   bSettings.addEventListener("click", openSettings);
   SQ("#cfg-back").addEventListener("click", closeSettings);
-  SQ("#se-accent").addEventListener("input", function(){ document.documentElement.style.setProperty("--ok", this.value); });
+  SQ("#se-accent").addEventListener("input", function(){ document.documentElement.style.setProperty("--ok", this.value, "important"); });
   sov.querySelectorAll(".cfg-tab").forEach(function(b){
     b.addEventListener("click", function(){ setTab(b.getAttribute("data-tab")); });
   });
   SQ("#se-save").addEventListener("click", function(){
     var btn=this; btn.disabled=true; btn.textContent="…";
     var payload={name:SQ("#se-name").value.trim(),url:SQ("#se-url").value.trim(),
-      accent:SQ("#se-accent").value,dark:SQ("#se-dark").checked,cron_hours:parseInt(SQ("#se-cron").value,10),
+      accent:SQ("#se-accent").value,dark:SQ("#se-dark").checked,
       css:SQ("#se-css").value};
     var f=SQ("#se-favfile").files&&SQ("#se-favfile").files[0];
     var chain = f ? readFile(f).then(function(d){return post("/favicon",{data:d});}) : Promise.resolve({ok:true});
     chain.then(function(){ return post("/settings", payload); }).then(function(j){
       btn.disabled=false; btn.textContent="Enregistrer";
-      if (j&&j.ok){ applySettings(j.settings); if(f){ settings.favicon=true; var cl=SQ("#cfg-logo"); cl.style.display="block"; cl.src="/favicon.png?v="+Date.now(); }
+      if (j&&j.ok){ applySettings(j.settings); if(f){ settings.favicon=true; var cl=SQ("#cfg-logo"); cl.style.display="block"; cl.src="/favicon.png?v="+Date.now(); var fd=SQ("#se-favdel"); if(fd) fd.style.display="inline-flex"; var fi=SQ("#se-favimg"); fi.style.visibility="visible"; fi.src="/favicon.png?v="+Date.now(); }
         SQ("#se-result").className="av-result show ok"; SQ("#se-result").textContent="Enregistré."; }
       else { SQ("#se-result").className="av-result show ko"; SQ("#se-result").textContent="Erreur : "+((j&&j.error)||"inconnue"); }
     }).catch(function(){ btn.disabled=false; btn.textContent="Enregistrer";
       SQ("#se-result").className="av-result show ko"; SQ("#se-result").textContent="Service injoignable."; });
+  });
+  SQ("#se-favdel").addEventListener("click", function(){
+    var btn=this; btn.disabled=true;
+    post("/favicon", {delete:true}).then(function(j){
+      btn.disabled=false;
+      if(j&&j.ok){
+        settings.favicon=false; applySettings(settings);
+        var im=SQ("#se-favimg"); im.style.visibility="hidden"; im.removeAttribute("src");
+        var cl=SQ("#cfg-logo"); if(cl) cl.style.display="none";
+        SQ("#se-favfile").value=""; btn.style.display="none";
+        SQ("#se-result").className="av-result show ok"; SQ("#se-result").textContent="Logo supprimé.";
+      } else { SQ("#se-result").className="av-result show ko"; SQ("#se-result").textContent="Erreur : "+((j&&j.error)||"inconnue"); }
+    }).catch(function(){ btn.disabled=false; SQ("#se-result").className="av-result show ko"; SQ("#se-result").textContent="Service injoignable."; });
   });
 
   /* ---------- SECTIONS DE CONFIG (logs / icônes / stats) ---------- */
@@ -640,11 +976,11 @@
         bRes.disabled=true; var o=bRes.textContent; bRes.innerHTML='<span class="av-spin"></span>'; note.style.color=""; note.textContent="";
         post("/siterestore",{slug:slug},12000).then(function(j){
           bRes.disabled=false; bRes.textContent=o;
-          if(!j||!j.ok){ note.style.color="var(--bad,#e0796f)"; note.textContent=(j&&j.error)||"Erreur"; return; }
-          note.style.color="var(--ok,#2d7a4f)"; note.textContent="✓ restauré ["+((j.keys&&j.keys.length)?j.keys.join(", "):"")+"]";
+          if(!j||!j.ok){ note.style.color="var(--ko,#e0796f)"; note.textContent=(j&&j.error)||"Erreur"; return; }
+          note.style.color="var(--good,#22c55e)"; note.textContent="✓ restauré ["+((j.keys&&j.keys.length)?j.keys.join(", "):"")+"]";
           post("/revisit",{slug:slug}).catch(function(){});
           refresh(); setTimeout(refresh,6000); setTimeout(refresh,15000);
-        }).catch(function(){ bRes.disabled=false; bRes.textContent=o; note.style.color="var(--bad,#e0796f)"; note.textContent="Service injoignable."; });
+        }).catch(function(){ bRes.disabled=false; bRes.textContent=o; note.style.color="var(--ko,#e0796f)"; note.textContent="Service injoignable."; });
       });
       row.appendChild(bR); row.appendChild(bI); row.appendChild(bRes); row.appendChild(note); box.appendChild(row);
     });
@@ -666,21 +1002,148 @@
     var configured=authState.configured, twofa=authState.twofa;
     SQ("#se-curblock").style.display = configured ? "block" : "none";
     SQ("#se-newlabel").textContent = configured ? "Nouveau mot de passe" : "Définir un mot de passe";
-    SQ("#se-cur").value=""; SQ("#se-new").value="";
+    SQ("#se-cur").value=""; SQ("#se-new").value=""; SQ("#se-new2").value="";
+    SQ("#se-pwmeter").style.display="none"; SQ("#se-pwmatch").textContent="";
     SQ("#se-2fablock").style.display = configured ? "block" : "none";
     SQ("#se-2fasetup").style.display="none"; SQ("#se-2facode").value="";
     SQ("#se-2fastate").textContent = twofa ? "2FA activé." : "2FA désactivé.";
     SQ("#se-2fabtn").textContent = twofa ? "Désactiver le 2FA" : "Activer le 2FA";
-    SQ("#se-2fabtn").className = "av-btn "+(twofa?"ghost":"test"); SQ("#se-2fabtn").style.padding="8px 14px";
+    SQ("#se-2fabtn").className = "av-btn "+(twofa?"ghost":"save"); SQ("#se-2fabtn").style.padding="8px 14px";
+    loadTLS();
   }
+  var tlsState=null;
+  function loadTLS(){
+    fetch("/tls/status").then(function(r){return r.json();}).then(function(j){
+      if(!j||!j.ok) return;
+      tlsState=j;
+      SQ("#se-tls-on").checked = !!j.enabled;
+      SQ("#se-tls-on").disabled = !j.has_cert;
+      SQ("#se-tls-state").textContent = j.enabled
+        ? "HTTPS actif."
+        : (j.has_cert ? "Certificat prêt — active le toggle pour passer en HTTPS."
+                      : "Aucun certificat. Génère-en un en local, ou importe le tien.");
+      if(j.cert){
+        var c=j.cert;
+        SQ("#se-tls-cert").innerHTML = "Certificat : <b>"+esc(c.cn||"?")+"</b>"
+          + (c.self_signed?" (auto-signé)":" — émis par "+esc(c.issuer||"?"))
+          + "<br>Noms couverts : "+esc((c.san||[]).join(", ")||"—")
+          + "<br>Expire : "+esc(c.not_after||"?");
+      } else { SQ("#se-tls-cert").innerHTML=""; }
+    }).catch(function(){});
+  }
+  function tlsMsg(txt,ok){ var m=SQ("#se-tls-msg"); m.style.color=ok?"var(--good,#22c55e)":"var(--ko,#e0796f)"; m.textContent=txt; }
+  SQ("#se-tls-on").addEventListener("change", function(){
+    var on=this.checked, self=this; self.disabled=true; tlsMsg(on?"Activation HTTPS…":"Désactivation…", true);
+    post(on?"/tls/enable":"/tls/disable",{}).then(function(j){
+      self.disabled=false;
+      if(j&&j.ok){
+        if(on){ tlsMsg("HTTPS activé. Bascule vers https:// (certificat auto-signé : ton navigateur affichera un avertissement à accepter une fois).", true);
+          setTimeout(function(){ location.href=location.href.replace(/^http:/,"https:"); }, 1600); }
+        else { tlsMsg("HTTPS désactivé — retour en HTTP.", true);
+          setTimeout(function(){ location.href=location.href.replace(/^https:/,"http:"); }, 1200); }
+        loadTLS();
+      } else { self.checked=!on; tlsMsg("Échec : "+((j&&j.error)||"inconnue"), false); }
+    }).catch(function(){ self.disabled=false; self.checked=!on; tlsMsg("Service injoignable.", false); });
+  });
+  SQ("#se-tls-gen").addEventListener("click", function(){
+    var bx=SQ("#se-tls-genbox"); var open=(bx.style.display==="none");
+    bx.style.display = open ? "block" : "none";
+    if(open){
+      SQ("#se-tls-importbox").style.display="none"; SQ("#se-tls-certbotbox").style.display="none";
+      var ip=(tlsState&&tlsState.ct_ip)||location.hostname;
+      if(!SQ("#se-tls-cn").value) SQ("#se-tls-cn").value=ip;
+      if(!SQ("#se-tls-san").value) SQ("#se-tls-san").value=ip;
+    }
+  });
+  SQ("#se-tls-gen-go").addEventListener("click", function(){
+    var b=this, o=b.textContent; b.disabled=true; b.textContent="Génération…";
+    post("/tls/selfsigned",{
+      cn: SQ("#se-tls-cn").value.trim(),
+      san: SQ("#se-tls-san").value.trim(),
+      org: SQ("#se-tls-org").value.trim(),
+      country: SQ("#se-tls-country").value.trim(),
+      days: parseInt(SQ("#se-tls-days").value,10)||825
+    }).then(function(j){
+      b.disabled=false; b.textContent=o;
+      if(j&&j.ok){ tlsMsg("Certificat auto-signé généré. Active le toggle HTTPS.", true);
+        SQ("#se-tls-genbox").style.display="none"; loadTLS(); }
+      else tlsMsg("Échec : "+((j&&j.error)||"inconnue"), false);
+    }).catch(function(){ b.disabled=false; b.textContent=o; tlsMsg("Service injoignable.", false); });
+  });
+  SQ("#se-tls-import").addEventListener("click", function(){
+    var bx=SQ("#se-tls-importbox"); var open=(bx.style.display==="none");
+    bx.style.display = open ? "block" : "none";
+    if(open){ SQ("#se-tls-genbox").style.display="none"; SQ("#se-tls-certbotbox").style.display="none"; }
+  });
+  SQ("#se-tls-import-save").addEventListener("click", function(){
+    var b=this, o=b.textContent; b.disabled=true; b.textContent="Vérification…";
+    post("/tls/import",{cert:SQ("#se-tls-cert-in").value, key:SQ("#se-tls-key-in").value}).then(function(j){
+      b.disabled=false; b.textContent=o;
+      if(j&&j.ok){ tlsMsg("Certificat importé et validé. Active le toggle HTTPS.", true);
+        SQ("#se-tls-importbox").style.display="none"; SQ("#se-tls-cert-in").value=""; SQ("#se-tls-key-in").value=""; loadTLS(); }
+      else tlsMsg("Échec : "+((j&&j.error)||"inconnue"), false);
+    }).catch(function(){ b.disabled=false; b.textContent=o; tlsMsg("Service injoignable.", false); });
+  });
+  SQ("#se-tls-certbot").addEventListener("click", function(){
+    var bx=SQ("#se-tls-certbotbox"); var open=(bx.style.display==="none");
+    bx.style.display = open ? "block" : "none";
+    if(open){ SQ("#se-tls-genbox").style.display="none"; SQ("#se-tls-importbox").style.display="none"; }
+  });
+  SQ("#se-tls-certbot-go").addEventListener("click", function(){
+    var b=this, o=b.textContent; b.disabled=true; b.textContent="Demande en cours… (peut prendre ~30 s)";
+    tlsMsg("Demande Let's Encrypt en cours…", true);
+    post("/tls/certbot",{domain:SQ("#se-tls-domain").value.trim(), email:SQ("#se-tls-email").value.trim(), staging:SQ("#se-tls-staging").checked}).then(function(j){
+      b.disabled=false; b.textContent=o;
+      if(j&&j.ok){
+        tlsMsg("Certificat Let's Encrypt obtenu et HTTPS activé pour "+(j.domain||"")+". Renouvellement automatique en place. Bascule vers https://…", true);
+        SQ("#se-tls-certbotbox").style.display="none"; loadTLS();
+        if(j.domain){ setTimeout(function(){ location.href="https://"+j.domain+"/"; }, 1800); }
+      } else tlsMsg("Échec : "+((j&&j.error)||"inconnue"), false);
+    }).catch(function(){ b.disabled=false; b.textContent=o; tlsMsg("Service injoignable (ou délai dépassé).", false); });
+  });
+  function pwStrength(p){
+    var s=0;
+    if(p.length>=8) s++;
+    if(p.length>=12) s++;
+    if(/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+    if(/[0-9]/.test(p)) s++;
+    if(/[^A-Za-z0-9]/.test(p)) s++;
+    var L=[{l:"Très faible",c:"#e0796f",p:15},{l:"Très faible",c:"#e0796f",p:22},
+           {l:"Faible",c:"#e0a13f",p:42},{l:"Moyen",c:"#d8c23a",p:66},
+           {l:"Bon",c:"#7bc46c",p:85},{l:"Fort",c:"#2d9d4f",p:100}][Math.min(s,5)];
+    return {score:s,label:L.l,color:L.c,pct:L.p};
+  }
+  function updatePwMeter(){
+    var p=SQ("#se-new").value, m=SQ("#se-pwmeter");
+    if(!p){ m.style.display="none"; updatePwMatch(); return; }
+    m.style.display="block";
+    var st=pwStrength(p);
+    SQ("#se-pwbar").style.width=st.pct+"%"; SQ("#se-pwbar").style.background=st.color;
+    SQ("#se-pwlabel").textContent="Robustesse : "+st.label+(p.length<8?" — min. 8 caractères":"");
+    SQ("#se-pwlabel").style.color=st.color;
+    updatePwMatch();
+  }
+  function updatePwMatch(){
+    var p=SQ("#se-new").value, c=SQ("#se-new2").value, el=SQ("#se-pwmatch");
+    if(!c){ el.textContent=""; return; }
+    if(p===c){ el.textContent="✓ Les mots de passe correspondent"; el.style.color="var(--good,#22c55e)"; }
+    else { el.textContent="✗ Les mots de passe ne correspondent pas"; el.style.color="var(--ko,#e0796f)"; }
+  }
+  SQ("#se-new").addEventListener("input", updatePwMeter);
+  SQ("#se-new2").addEventListener("input", updatePwMatch);
   SQ("#se-pwbtn").addEventListener("click", function(){
-    var btn=this; btn.disabled=true;
-    post("/auth/password",{current:SQ("#se-cur").value,new:SQ("#se-new").value}).then(function(j){
+    var btn=this, np=SQ("#se-new").value, cp=SQ("#se-new2").value;
+    function ko(t){ SQ("#se-result").className="av-result show ko"; SQ("#se-result").textContent=t; }
+    if(np.length<8){ ko("Mot de passe trop court (min. 8 caractères)."); return; }
+    if(pwStrength(np).score<3){ ko("Mot de passe trop faible — mélange majuscules, minuscules, chiffres et symboles, ou allonge-le."); return; }
+    if(np!==cp){ ko("Les deux mots de passe ne correspondent pas."); return; }
+    btn.disabled=true;
+    post("/auth/password",{current:SQ("#se-cur").value,new:np}).then(function(j){
       btn.disabled=false;
       if(j.ok){ authState.configured=true; updateAuthBtn(); refreshSecurityUI();
         SQ("#se-result").className="av-result show ok"; SQ("#se-result").textContent="Mot de passe enregistré."; }
-      else { SQ("#se-result").className="av-result show ko"; SQ("#se-result").textContent="Erreur : "+(j.error||""); }
-    }).catch(function(){ btn.disabled=false; SQ("#se-result").className="av-result show ko"; SQ("#se-result").textContent="Service injoignable."; });
+      else ko("Erreur : "+(j.error||""));
+    }).catch(function(){ btn.disabled=false; ko("Service injoignable."); });
   });
   SQ("#se-2fabtn").addEventListener("click", function(){
     var btn=this;
@@ -722,7 +1185,8 @@
         </div>
         <p class="av-hint" id="av-authswitch" style="margin:-4px 0 10px"><a href="#" id="av-tocookie" style="color:#74d0d6">🍪 Le tracker bloque (captcha, Cloudflare…) ? Se connecter par cookies de session →</a></p>
         <div id="av-cookieblock" style="display:none">
-          <div class="av-field"><label>Cookies de session</label><textarea id="av-cookies" rows="4" placeholder='Colle le JSON exporté ([{"name":"…","value":"…"}]) OU la chaîne brute « nom=valeur; nom2=valeur2 »'></textarea></div>
+          <div class="av-field"><label>Cookies de session</label><textarea id="av-cookies" rows="4" placeholder='Colle le JSON exporté ([{"name":"…","value":"…"}]) OU la chaîne brute « nom=valeur; nom2=valeur2 »'></textarea>
+          <p class="av-hint" style="margin:6px 0 0">Connecte-toi au tracker en cochant <b>« Se souvenir de moi »</b> <i>avant</i> d'exporter, puis récupère <b>tous</b> les cookies du domaine — en particulier le cookie persistant (souvent <code>remember_*</code> ou <code>remember_web_*</code>). Sans lui, la session expire au bout de quelques heures et les stats repassent en N/A.</p></div>
           <div class="av-field"><label>User-Agent (celui du navigateur d'où viennent les cookies)</label><input id="av-ua" type="text" autocomplete="off" placeholder="Mozilla/5.0 ..."></div>
         </div>
         <div class="av-field" id="av-2farow" style="display:none"><label>Secret 2FA (base32)</label><input id="av-totp" type="text" placeholder="SECRET_BASE32 de ton app d'authentification" autocomplete="off"><p class="av-hint">Ce tracker demande un code 2FA. Colle ici le <b>secret</b> (la clé base32 affichée à l'activation du 2FA, ex. <code>JBSWY3DP…</code>) — pas un code à 6 chiffres : le bot tournant en continu, il génère lui-même le code à chaque visite.</p></div>
@@ -772,6 +1236,7 @@
     <div class="av-head"><h2 id="av-iov-title">Inspecter</h2><button class="av-x" type="button" aria-label="Fermer">×</button></div>
     <div class="av-body">
       <p class="av-hint" id="av-iov-info" style="margin:0 0 8px">Ceci est exactement ce que le bot reçoit de la page de stats.</p>
+      <div style="margin:0 0 10px"><button class="av-btn go" type="button" id="av-iov-run">▶ Lancer l'inspection</button></div>
       <pre id="av-iov-pre" style="max-height:42vh;overflow:auto;white-space:pre-wrap;word-break:break-word;background:rgba(130,130,130,.08);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;margin:0">…</pre>
       <div style="margin-top:12px;display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
         <div style="flex:1;min-width:240px">
@@ -848,17 +1313,20 @@
       var p=iov.querySelector("#av-iov-asst"); p.style.display = p.style.display==="none" ? "block" : "none";
     });
     // Bouton « Inspecter cette page » : recapture le dump sur l'URL saisie.
-    iov.querySelector("#av-iov-reinspect").addEventListener("click", function(){
-      var b=this, slug=iov.dataset.slug||"", myGen=++iovGen;
-      b.disabled=true; var o=b.textContent; b.innerHTML='<span class="av-spin"></span>';
+    function runInspect(b, payload){
+      var slug=iov.dataset.slug||"", myGen=++iovGen;
+      b.disabled=true; var o=b.innerHTML; b.innerHTML='<span class="av-spin"></span>';
       iov.querySelector("#av-iov-pre").textContent = "Visite en cours… (connexion + page de stats, ~10-30 s)";
-      inspectPost({slug:slug, extra_url:iovExtra()}, 3, function(){ return myGen===iovGen; }).then(function(j){
-        b.disabled=false; b.textContent=o;
+      payload.slug=slug;
+      inspectPost(payload, 3, function(){ return myGen===iovGen; }).then(function(j){
+        b.disabled=false; b.innerHTML=o;
         if(myGen!==iovGen) return;   // modale fermée ou relancée -> réponse périmée
         if(j && j.ok){ iov.querySelector("#av-iov-pre").textContent = j.content + (j.truncated?"\n\n… (tronqué à 200 000 caractères)":""); if(asstRetest) asstRetest(); }
         else { iov.querySelector("#av-iov-pre").textContent = (j && j.error) ? j.error : "Aucun contenu capturé."; }
-      }).catch(function(){ b.disabled=false; b.textContent=o; if(myGen!==iovGen) return; iov.querySelector("#av-iov-pre").textContent="Erreur réseau pendant l'inspection."; });
-    });
+      }).catch(function(){ b.disabled=false; b.innerHTML=o; if(myGen!==iovGen) return; iov.querySelector("#av-iov-pre").textContent="Erreur réseau pendant l'inspection."; });
+    }
+    iov.querySelector("#av-iov-run").addEventListener("click", function(){ runInspect(this, {}); });
+    iov.querySelector("#av-iov-reinspect").addEventListener("click", function(){ runInspect(this, {extra_url:iovExtra()}); });
     function genRegex(kind, anchor){
       var a=anchor.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/\s+/g,"\\s*");
       if(kind==="size")  return a+"[\\s\\S]{0,80}?(\\d[\\d\\s.,]*\\s*(?:[KMGTPE](?:i?B|io|o)|B|o))";
@@ -879,9 +1347,9 @@
       // L'insertion est LOCALE ; clique « Enregistrer & fermer » pour l'appliquer au bot.
       var msg=iov.querySelector("#av-iov-msg");
       if(msg){
-        if(res===undefined){ msg.style.color="var(--bad,#e0796f)"; msg.textContent="⚠ Inspecte d'abord la page (le HTML doit s'afficher ci-dessus) pour vérifier la regex."; }
-        else if(res===null){ msg.style.color="var(--bad,#e0796f)"; msg.textContent="Regex « "+fld+" » ajoutée, mais elle ne trouve RIEN sur la page (N/A). Ajuste le texte avant la valeur."; }
-        else { msg.style.color="var(--ok,#2d7a4f)"; msg.textContent="✓ « "+fld+" » = "+res+" — clique « Enregistrer & fermer » pour l'appliquer."; }
+        if(res===undefined){ msg.style.color="var(--ko,#e0796f)"; msg.textContent="⚠ Inspecte d'abord la page (le HTML doit s'afficher ci-dessus) pour vérifier la regex."; }
+        else if(res===null){ msg.style.color="var(--ko,#e0796f)"; msg.textContent="Regex « "+fld+" » ajoutée, mais elle ne trouve RIEN sur la page (N/A). Ajuste le texte avant la valeur."; }
+        else { msg.style.color="var(--good,#22c55e)"; msg.textContent="✓ « "+fld+" » = "+res+" — clique « Enregistrer & fermer » pour l'appliquer."; }
       }
       btn.textContent="✓"; setTimeout(function(){ btn.textContent="Générer"; },1200);
     }
@@ -912,20 +1380,20 @@
   // pour revenir à une config par défaut si on a cassé les regex. À enregistrer ensuite.
   iov.querySelector("#av-iov-default").addEventListener("click", function(){
     var msg=iov.querySelector("#av-iov-msg");
-    if(iov.dataset.ready!=="1"){ msg.style.color="var(--bad,#e0796f)"; msg.textContent="Patiente : la config du site n'est pas encore chargée."; return; }
+    if(iov.dataset.ready!=="1"){ msg.style.color="var(--ko,#e0796f)"; msg.textContent="Patiente : la config du site n'est pas encore chargée."; return; }
     var hay=iov.dataset.dom||"", t=null, best=-1;
     for(var i=0;i<TRACKERS.length;i++){ var d=(TRACKERS[i].d||"").toLowerCase(); if(d && hay.indexOf(d)>=0 && d.length>best){ t=TRACKERS[i]; best=d.length; } }
-    if(!t){ msg.style.color="var(--bad,#e0796f)"; msg.textContent="Aucun tracker par défaut reconnu pour ce site (ajouté manuellement ?)."; return; }
+    if(!t){ msg.style.color="var(--ko,#e0796f)"; msg.textContent="Aucun tracker par défaut reconnu pour ce site (ajouté manuellement ?)."; return; }
     var def=null, kind="stats";
     if(t.s && Object.keys(t.s).length){ def=t.s; kind="stats"; }
     else if(t.sj && Object.keys(t.sj).length){ def=t.sj; kind="stats_json"; }
     else if(t.xf && t.xf.s && Object.keys(t.xf.s).length){ def=t.xf.s; kind="stats"; }
-    if(!def){ msg.style.color="var(--bad,#e0796f)"; msg.textContent="« "+(t.n||t.d)+" » n'a pas de regex par défaut intégrées."; return; }
+    if(!def){ msg.style.color="var(--ko,#e0796f)"; msg.textContent="« "+(t.n||t.d)+" » n'a pas de regex par défaut intégrées."; return; }
     if(!window.confirm("Remplacer les regex actuelles par celles par défaut de « "+(t.n||t.d)+" » ?\n(rien n'est appliqué tant que tu n'as pas cliqué « Enregistrer & fermer »)")) return;
     iov.querySelector("#av-iov-json").value = JSON.stringify(def, null, 2);
     iov.dataset.statskind=kind;
     if(asstRetest) asstRetest();
-    msg.style.color="var(--ok,#2d7a4f)"; msg.textContent="↩ Regex par défaut de « "+(t.n||t.d)+" » chargées — clique « Enregistrer & fermer » pour appliquer.";
+    msg.style.color="var(--good,#22c55e)"; msg.textContent="↩ Regex par défaut de « "+(t.n||t.d)+" » chargées — clique « Enregistrer & fermer » pour appliquer.";
   });
   // « Restaurer la sauvegarde » : remet la config de stats d'avant le dernier
   // enregistrement (data/.statsbak), via le backend, puis revisite.
@@ -937,45 +1405,45 @@
     function restore(){ btn.disabled=false; btn.textContent=o; }
     post("/siterestore",{slug:slug},12000).then(function(j){
       restore();
-      if(!j||!j.ok){ msg.style.color="var(--bad,#e0796f)"; msg.textContent="Erreur : "+((j&&j.error)||"inconnue"); return; }
+      if(!j||!j.ok){ msg.style.color="var(--ko,#e0796f)"; msg.textContent="Erreur : "+((j&&j.error)||"inconnue"); return; }
       // recharge le JSON restauré dans la zone d'édition + badges
       fetch("/site?slug="+encodeURIComponent(slug)).then(function(r){return r.json();}).then(function(s){
         if(s&&s.ok){ var st=s.site||{}; var cur=(st.stats&&Object.keys(st.stats).length)?st.stats:(st.stats_json||st.extra_stats||{}); iov.querySelector("#av-iov-json").value=JSON.stringify(cur,null,2); iov.dataset.ready="1"; if(asstRetest) asstRetest(); }
       }).catch(function(){});
-      msg.style.color="var(--ok,#2d7a4f)"; msg.textContent="↩ Sauvegarde restaurée ["+((j.keys&&j.keys.length)?j.keys.join(", "):"")+"] — réactualisation en cours…";
+      msg.style.color="var(--good,#22c55e)"; msg.textContent="↩ Sauvegarde restaurée ["+((j.keys&&j.keys.length)?j.keys.join(", "):"")+"] — réactualisation en cours…";
       refresh();
       post("/revisit",{slug:slug},12000).catch(function(){});
       setTimeout(refresh,6000); setTimeout(refresh,15000); setTimeout(refresh,30000);
-    }).catch(function(){ restore(); msg.style.color="var(--bad,#e0796f)"; msg.textContent="Service injoignable."; });
+    }).catch(function(){ restore(); msg.style.color="var(--ko,#e0796f)"; msg.textContent="Service injoignable."; });
   });
   iov.querySelector("#av-iov-save").addEventListener("click", function(){
     var btn=this, slug=iov.dataset.slug||"", kind=iov.dataset.statskind||"stats";
     var msg=iov.querySelector("#av-iov-msg"); var raw=iov.querySelector("#av-iov-json").value.trim();
-    if(iov.dataset.ready!=="1"){ msg.style.color="var(--bad,#e0796f)"; msg.textContent="Patiente : les regex du site ne sont pas encore chargées."; return; }
+    if(iov.dataset.ready!=="1"){ msg.style.color="var(--ko,#e0796f)"; msg.textContent="Patiente : les regex du site ne sont pas encore chargées."; return; }
     var obj;
     try { obj = raw ? JSON.parse(raw) : {}; if(typeof obj!=="object"||Array.isArray(obj)) throw new Error("objet attendu"); }
-    catch(e){ msg.style.color="var(--bad,#e0796f)"; msg.textContent="JSON invalide : "+e.message; return; }
+    catch(e){ msg.style.color="var(--ko,#e0796f)"; msg.textContent="JSON invalide : "+e.message; return; }
     btn.disabled=true; var o=btn.dataset.label||btn.textContent; btn.dataset.label=o;
     btn.innerHTML='<span class="av-spin"></span> Enregistrement…'; msg.style.color=""; msg.textContent="Enregistrement…";
     function restore(){ btn.disabled=false; btn.textContent=o; }
     var payload=iovStatsPayload(slug, obj);
     post("/sitestats", payload, 12000).then(function(j){
-      if(!j||!j.ok){ restore(); msg.style.color="var(--bad,#e0796f)"; msg.textContent="Erreur : "+((j&&j.error)||"inconnue"); return; }
+      if(!j||!j.ok){ restore(); msg.style.color="var(--ko,#e0796f)"; msg.textContent="Erreur : "+((j&&j.error)||"inconnue"); return; }
       // Modif ENREGISTRÉE : on affiche la confirmation un court instant, puis on ferme
       // (la revisite tourne en arrière-plan et le tableau se met à jour ensuite).
-      restore(); msg.style.color="var(--ok,#2d7a4f)";
+      restore(); msg.style.color="var(--good,#22c55e)";
       msg.textContent="✓ Enregistré ["+((j.keys&&j.keys.length)?j.keys.join(", "):"aucune clé")+"] — réactualisation en cours…";
       refresh();
       post("/revisit",{slug:slug}, 12000).catch(function(){});
       setTimeout(refresh, 6000); setTimeout(refresh, 15000); setTimeout(refresh, 30000);
       setTimeout(closeInspect, 1100);
-    }).catch(function(){ restore(); msg.style.color="var(--bad,#e0796f)"; msg.textContent="Service injoignable."; });
+    }).catch(function(){ restore(); msg.style.color="var(--ko,#e0796f)"; msg.textContent="Service injoignable."; });
   });
   function openInspect(slug, name){
     var myGen=++iovGen;
     iov.dataset.slug=slug; iov.dataset.statskind="stats"; iov.dataset.name=name||"";
-    iov.querySelector("#av-iov-title").textContent = "Inspecter — "+name+"  (v"+Malinois_VER+")";
-    iov.querySelector("#av-iov-pre").textContent = "Visite en cours… (connexion au tracker, ~10-30 s)";
+    iov.querySelector("#av-iov-title").textContent = "Inspecter — "+name;
+    iov.querySelector("#av-iov-pre").textContent = "Inspection non lancée.\n\nClique sur « ▶ Lancer l'inspection » pour récupérer le HTML de la page. Cela déclenche une visite réelle du tracker (~10-30 s).";
     iov.querySelector("#av-iov-info").textContent = "Ceci est exactement ce que le bot reçoit de la page de stats.";
     iov.querySelector("#av-iov-msg").textContent = "";
     iov.querySelector("#av-iov-json").value = "Chargement des regex…";
@@ -1007,15 +1475,8 @@
       iov.dataset.ready="1";
       if(asstRetest) asstRetest();
     }).catch(function(){ iov.querySelector("#av-iov-json").value = "{}"; iov.dataset.ready="1"; });
-    inspectPost({slug:slug}, 3, function(){ return myGen===iovGen; }).then(function(j){
-      if(myGen!==iovGen) return;   // l'utilisateur a fermé ou ouvert un autre site
-      if(j && j.ok){
-        iov.querySelector("#av-iov-pre").textContent = j.content + (j.truncated?"\n\n… (tronqué à 200 000 caractères)":"");
-        if(asstRetest) asstRetest();
-      } else {
-        iov.querySelector("#av-iov-pre").textContent = (j && j.error) ? j.error : "Aucun contenu capturé.";
-      }
-    }).catch(function(){ if(myGen!==iovGen) return; iov.querySelector("#av-iov-pre").textContent = "Erreur réseau pendant l'inspection."; });
+    // Plus de récupération automatique du HTML : l'inspection ne se lance qu'au clic
+    // sur « ▶ Lancer l'inspection » (évite une visite réelle à chaque ouverture).
   }
 
   var Q = function (s) { return ov.querySelector(s); };
@@ -1623,6 +2084,9 @@
   var refreshing=false;
   function refresh(){
     if(refreshing) return; refreshing=true;
+    var _t0=Date.now();
+    if(brand) brand.classList.add("refreshing");
+    if(updatedEl) updatedEl.innerHTML='<span class="av-spin"></span>Actualisation…';
     Promise.all([
       fetch("/sites").then(function(r){return r.json();}).catch(function(){return null;}),
       fetch("status.json?_="+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
@@ -1630,10 +2094,21 @@
       var sites=((res[0]&&res[0].sites)||[]);
       var status=res[1]||{};
       lastSites=sites; lastStatus=status;
-      if(updatedEl) updatedEl.textContent = status.updated ? ("Mis à jour : "+status.updated) : "—";
       renderRows(sites, status);
+      browserNotifyCheck(status);
       syncLogos(sites);
-    }).catch(function(){}).then(function(){ refreshing=false; });
+    }).catch(function(){}).then(function(){
+      function _done(){
+        refreshing=false;
+        if(brand) brand.classList.remove("refreshing");
+        if(updatedEl){
+          var u=new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+          updatedEl.textContent="Actualisé : "+u;
+        }
+      }
+      var _dt=Date.now()-_t0;
+      if(_dt<600){ setTimeout(_done, 600-_dt); } else { _done(); }
+    });
   }
 
   bAdd.addEventListener("click", openAdd);
@@ -1644,12 +2119,12 @@
     else if(sov.classList.contains("open")) closeSettings();
     else if(ov.classList.contains("open")) closeAdd(true); }});
 
-  function init2(){ loadSettings(); refresh(); }
+  function init2(){ loadSettings(); loadAlerts(); refresh(); }
   function init(){
     fetch("/auth/status").then(function(r){return r.json();}).then(function(j){
       if(j&&j.ok){ authState={configured:j.configured,twofa:j.twofa,authed:j.authed}; }
+      if(j&&j.accent){ document.documentElement.style.setProperty("--ok", j.accent, "important"); }
       updateAuthBtn();
-      if(!authState.configured){ showLogin(true); return; }
       if(authState.configured && !authState.authed){ showLogin(); return; }
       init2();
     }).catch(function(){ init2(); });
