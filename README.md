@@ -25,8 +25,8 @@ est triable et chaque ligne propose des actions rapides (revisite, édition, ins
   captcha invisible (Playwright headless), challenge complet (Byparr).
 - Inspecteur de regex en direct sur un dump du HTML reçu, avec sauvegarde/restauration.
 - Authentification (login + 2FA optionnel), thème clair/sombre, icônes par tracker.
-- **Alertes** (e-mail, Telegram, webhook) : passage en échec, rétablissement, résumé par visite,
-  et **statistiques non récupérées** (upload = N/A → cookie probablement expiré).
+- **Alertes** (e-mail, Telegram, webhook, **notification navigateur**) : passage en échec, rétablissement,
+  résumé par visite, et **statistiques non récupérées** (un stat = N/A → cookie probablement expiré).
 - **HTTPS configurable depuis l'interface** : certificat auto-signé, import d'un certificat, ou Let's Encrypt (certbot).
 - Collecte planifiée par cron, journaux consultables et mode **Live**.
 
@@ -88,6 +88,39 @@ pour en extraire les chiffres. C'est ici qu'on choisit le mode anti-Cloudflare d
 
 ![Édition d'un tracker](docs/img/preconfig.png)
 
+### Trackers derrière Cloudflare
+
+Trois modes, à choisir dans la fiche du site selon la protection rencontrée :
+
+- **`curl_cffi`** (empreinte TLS Firefox) — pour un site qui ne sert pas de challenge interactif,
+  ou pour **rejouer** une session déjà ouverte (voir plus bas). Léger et rapide.
+- **Byparr / `cf_solver`** (challenge complet) — un vrai navigateur furtif (Camoufox) qui **résout**
+  les challenges JavaScript et **managés / Turnstile** que `curl_cffi` ne peut pas passer.
+- **Playwright** — navigateur headless pour les pages rendues en JavaScript / captcha invisible.
+
+**Cas difficile : challenge managé *et* session liée à l'User-Agent.** Certains trackers cumulent
+un **challenge Cloudflare managé** (que seul un vrai navigateur franchit) et une **session liée à
+l'User-Agent** (typique de Flask-Login en protection « strong » : une session rejouée depuis un UA
+différent est invalidée → redirection vers la page de connexion). Là, un solveur ne suffit pas : il
+franchit bien Cloudflare, mais son User-Agent (souvent tournant) ne correspond pas à celui qui a créé
+ta session → déconnexion.
+
+La méthode qui marche alors est le **« résous une fois, rejoue le cookie »** :
+
+1. Dans **ton navigateur** (sur le même réseau que le bot, donc même IP publique), connecte-toi au
+   tracker et atteins ta page de compte : Cloudflare est franchi (`cf_clearance` posé) **et** ta
+   session est ouverte.
+2. Exporte le **jeu de cookies complet** du domaine — cookies de session **+ `cf_clearance`** — dans
+   le fichier de cookies du site.
+3. Règle le site en **`curl_cffi`** (et non `cf_solver`) avec un **User-Agent identique** à celui de
+   ce navigateur. Tout reste cohérent (IP + UA + empreinte TLS + cookies du même navigateur) → le
+   tracker accepte la session et les stats reviennent.
+
+> Le `cf_clearance` **expire** au bout d'un certain temps : le site repassera alors en N/A et
+> l'**alerte « stats non récupérées »** te préviendra — il suffira de ré-exporter les cookies. Pour
+> du 100 % automatique sans ré-export, il faudrait exécuter le **login complet dans le navigateur du
+> solveur** (UA cohérent de bout en bout), plus lourd à mettre en place.
+
 ### Réactualiser et inspecter
 
 Dans **Configuration → Statistiques**, chaque tracker se réactualise individuellement, s'inspecte
@@ -115,6 +148,11 @@ Elle ignore les échecs de login (déjà couverts) et n'avertit qu'au passage en
 
 Les alertes sont évaluées **après chaque visite planifiée (cron)** — pas seulement lors d'un
 rafraîchissement manuel — afin d'être notifié automatiquement.
+
+Une **notification navigateur** (API Notification) peut aussi s'afficher sur un passage en échec
+ou en stats N/A. Contrairement aux canaux serveur (e-mail / Telegram / webhook), elle ne se
+déclenche **que si le dashboard est ouvert** dans le navigateur : pour être prévenu pendant une
+visite cron sans surveiller la page, utilise plutôt e-mail ou Telegram.
 
 ### HTTPS
 
