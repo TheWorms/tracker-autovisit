@@ -25,6 +25,9 @@ est triable et chaque ligne propose des actions rapides (revisite, édition, ins
   captcha invisible (Playwright headless), challenge complet (Byparr).
 - Inspecteur de regex en direct sur un dump du HTML reçu, avec sauvegarde/restauration.
 - Authentification (login + 2FA optionnel), thème clair/sombre, icônes par tracker.
+- **Alertes** (e-mail, Telegram, webhook) : passage en échec, rétablissement, résumé par visite,
+  et **statistiques non récupérées** (upload = N/A → cookie probablement expiré).
+- **HTTPS configurable depuis l'interface** : certificat auto-signé, import d'un certificat, ou Let's Encrypt (certbot).
 - Collecte planifiée par cron, journaux consultables et mode **Live**.
 
 ---
@@ -99,6 +102,21 @@ L'onglet **Configuration → Logs** affiche `cron.log` (et les autres journaux) 
 colorée, avec un mode **Live** pour suivre une collecte en temps réel.
 
 ![Logs](docs/img/logs.png)
+
+### Alertes
+
+L'onglet **Configuration → Alertes** permet d'être notifié par **e-mail, Telegram ou webhook**.
+On choisit les déclencheurs : passage d'un site en échec, rétablissement, résumé après chaque
+visite, et **statistiques non récupérées** — quand un site est connecté mais que son upload
+revient `N/A` (cause probable : cookie de session expiré ou renouvellement échoué). Cette
+dernière alerte ne cible que les sites censés exposer un upload, ignore les échecs de login
+(déjà couverts) et n'avertit que sur les nouveaux sites passant en N/A (anti-spam).
+
+### HTTPS
+
+L'onglet **Configuration → HTTPS** active le TLS sans toucher au shell : certificat
+**auto-signé** généré à la volée, **import** d'un certificat existant (PEM), ou **Let's Encrypt**
+via certbot. La configuration Nginx est régénérée automatiquement selon le mode choisi.
 
 ---
 
