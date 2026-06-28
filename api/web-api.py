@@ -24,6 +24,7 @@ SITES_DIR = os.path.join(BASE, "data", "sites.d")
 BAK_DIR = os.path.join(BASE, "data", ".sitebak")
 STATUS = os.path.join(BASE, "data", "status.json")
 SCRIPT = os.path.join(BASE, "autovisit.py")
+WEBAPI = os.path.join(BASE, "web-api.py")
 HOST, PORT = "127.0.0.1", 8099
 REQUIRED = ("name", "url", "post_url", "username")
 
@@ -213,7 +214,7 @@ def _write_cron(line):
 def update_cron(hours):
     """Planifie autovisit tous les N jours (N = hours/24) à 6h, sans toucher au reste du crontab."""
     n = max(1, int(hours) // 24)
-    return _write_cron("0 6 */%d * * %s --json-output >> %s 2>&1" % (n, SCRIPT, LOGFILE))
+    return _write_cron("0 6 */%d * * %s --json-output >> %s 2>&1 ; /usr/bin/python3 %s --check-alerts >> %s 2>&1" % (n, SCRIPT, LOGFILE, WEBAPI, LOGFILE))
 
 
 def cron_schedule(opts):
@@ -233,7 +234,7 @@ def cron_schedule(opts):
 
 def set_cron(opts):
     """Écrit la ligne autovisit selon une planification structurée."""
-    line = "%s %s --json-output >> %s 2>&1" % (cron_schedule(opts), SCRIPT, LOGFILE)
+    line = "%s %s --json-output >> %s 2>&1 ; /usr/bin/python3 %s --check-alerts >> %s 2>&1" % (cron_schedule(opts), SCRIPT, LOGFILE, WEBAPI, LOGFILE)
     return _write_cron(line)
 
 
@@ -617,7 +618,8 @@ def _alert_log(msg):
 # ===== Alertes / notifications (email SMTP, Telegram, webhook/ntfy) =====
 def read_alerts():
     base = {"email": {}, "telegram": {}, "webhook": {}, "browser": {"enabled": False},
-            "on_failure": False, "on_recovery": False, "on_each_run": False, "on_stats_na": False}
+            "on_failure": False, "on_recovery": False, "on_each_run": False, "on_stats_na": False,
+            "stats_na_fields": ["upload"]}
     try:
         d = json.load(open(ALERTS_FILE, encoding="utf-8"))
         if isinstance(d, dict):
@@ -669,6 +671,10 @@ def _update_alerts(incoming):
         cur["on_recovery"] = bool(incoming.get("on_recovery"))
         cur["on_each_run"] = bool(incoming.get("on_each_run"))
         cur["on_stats_na"] = bool(incoming.get("on_stats_na"))
+        if "stats_na_fields" in incoming:
+            _allowed = ("upload", "download", "ratio", "bonus", "seeding", "class")
+            _f = incoming.get("stats_na_fields") or []
+            cur["stats_na_fields"] = [k for k in _f if k in _allowed] or ["upload"]
     if "browser" in incoming:
         cur["browser"] = {"enabled": bool((incoming.get("browser") or {}).get("enabled"))}
     write_alerts(cur)
@@ -788,18 +794,40 @@ def check_and_alert():
             msgs.append("Sites retablis (de nouveau OK) : " + ", ".join(recovered) + ".")
         na_sites = []
         if cfg.get("on_stats_na"):
+            _MISS = object()
+            _fields = cfg.get("stats_na_fields") or ["upload"]
             def _na(v):
                 return v is None or (isinstance(v, str) and (v.strip() == "" or v.strip().upper() == "N/A"))
+            def _field_of(st, f):
+                # status stocke stats soit en dict, soit en chaine "upload: X | download: Y | ..."
+                if isinstance(st, dict):
+                    return st.get(f, _MISS)
+                if isinstance(st, str):
+                    for part in st.split("|"):
+                        k, sep, v = part.partition(":")
+                        if sep and k.strip().lower() == f.lower():
+                            return v.strip()
+                    return _MISS
+                return _MISS
+            _detail = {}
             for s in sites:
                 if not s.get("ok", True):
                     continue  # echec de visite : deja couvert par on_failure
-                stats = s.get("stats") or s.get("stats_json") or s.get("extra_stats") or {}
-                if isinstance(stats, dict) and "upload" in stats and _na(stats.get("upload")):
-                    na_sites.append(s.get("name", s.get("slug", "?")))
+                st = s.get("stats") or s.get("stats_json") or s.get("extra_stats") or {}
+                na_here = []
+                for f in _fields:
+                    v = _field_of(st, f)
+                    if v is not _MISS and _na(v):
+                        na_here.append(f)
+                if na_here:
+                    nm = s.get("name", s.get("slug", "?"))
+                    _detail[nm] = na_here
+                    na_sites.append(nm)
             na_sites = sorted(na_sites)
             new_na = [n for n in na_sites if n not in (cfg.get("_last_stats_na") or [])]
             if new_na:
-                msgs.append("Statistiques non recuperees (upload = N/A) sur : " + ", ".join(new_na)
+                _parts = ["%s (%s)" % (n, ", ".join(_detail[n])) for n in new_na]
+                msgs.append("Statistiques non recuperees sur : " + ", ".join(_parts)
                             + ". Probablement une erreur de recuperation/renouvellement de cookie -- verifie ou reimporte les cookies de session.")
         for m in msgs:
             send_alert("Malinois : alerte visite", m)
@@ -1702,6 +1730,9 @@ if __name__ == "__main__":
     if "--write-nginx" in sys.argv:
         https = write_nginx_from_state()
         print("nginx config ecrite (%s) -> %s" % ("HTTPS" if https else "HTTP", NGINX_SITE), flush=True)
+        sys.exit(0)
+    if "--check-alerts" in sys.argv:
+        check_and_alert()
         sys.exit(0)
     print("web-api v5 sur http://%s:%d" % (HOST, PORT), flush=True)
     ThreadingHTTPServer((HOST, PORT), H).serve_forever()

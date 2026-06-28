@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy-addsite.sh v123 — auth (login + 2FA optionnel), HTTPS gerable depuis l'UI (auto-signe / import),
+# deploy-addsite.sh v125 — auth (login + 2FA optionnel), HTTPS gerable depuis l'UI (auto-signe / import),
 # v83 : menu Securite > HTTPS (toggle, cert auto-signe ou importe), nginx genere par le backend
 # (--write-nginx, rollback nginx -t), cookie Secure, restriction LAN des fichiers statiques + en-tetes securite.
 # v84 : fix routage nginx des routes /tls/ (location ~ ^/tls/ dediee, deux segments).
@@ -42,6 +42,8 @@
 # v121 : option INSTALL_FLARESOLVERR=1 -> installe FlareSolverr SANS docker (binaire x64 auto-contenu + service systemd sur 127.0.0.1:8191, libseccomp2 auto). Defaut 0 = non installe (solveur externe attendu). README enrichi : commandes de deploiement/mise a jour, doc de l'option FlareSolverr, section Organisation Git (branche main privee + branche docker + propagation via merge ou action Forgejo). Squelette docker/ + .forgejo/workflows/sync-docker.yml ajoutes.
 # v122 : l'option FlareSolverr est desormais INTERACTIVE -> en terminal (ssh -t ou local) le script DEMANDE "Installer FlareSolverr ? [o/N]" ; la variable INSTALL_FLARESOLVERR reste prioritaire pour l'automatisation (non-interactif => defaut non). README + commandes mis a jour (ssh -t).
 # v123 : nouvelle alerte "Statistiques non recuperees" -> si un site est OK (connecte) mais que son upload revient N/A (vide ou "N/A"), envoi d'une alerte signalant des stats non recuperees (cause probable : cookie expire/renouvellement echoue). Nouvelle case dans l'onglet Alertes (on_stats_na), anti-spam via _last_stats_na, ne concerne que les sites exposant un champ upload.
+# v124 : FIX alerte stats N/A -> le status stocke stats en CHAINE ("upload: X | download: Y | ...") via format_stats, pas en dict ; l'alerte testait isinstance(dict) et ne se declenchait jamais. Ajout d'un parseur _upload_of qui gere dict ET chaine.
+# v125 : (1) les visites CRON evaluent desormais les alertes -> ligne cron enchaine "autovisit --json-output ; web-api.py --check-alerts" (nouveau mode CLI), + patch idempotent du crontab existant au deploiement ; check_and_alert n'est plus limite au bouton Reactualiser. (2) Choix multiple des champs surveilles pour l'alerte stats N/A (upload/download/ratio/bonus/seeding/rang) via stats_na_fields + multi-select dans l'onglet Alertes ; le message detaille les champs N/A par site.
 # auth par cle (Nostradamus), rendu propre, logos, configs git fideles.
 # GARDE-FOU : pour desactiver l'auth si verrouille -> 'rm /opt/tracker-autovisit/data/auth.json' puis 'systemctl restart autovisit-web' (dans le conteneur).
 # set -e RETIRE volontairement : une etape intermediaire qui echoue (patcher,
@@ -224,6 +226,7 @@ SITES_DIR = os.path.join(BASE, "data", "sites.d")
 BAK_DIR = os.path.join(BASE, "data", ".sitebak")
 STATUS = os.path.join(BASE, "data", "status.json")
 SCRIPT = os.path.join(BASE, "autovisit.py")
+WEBAPI = os.path.join(BASE, "web-api.py")
 HOST, PORT = "127.0.0.1", 8099
 REQUIRED = ("name", "url", "post_url", "username")
 
@@ -413,7 +416,7 @@ def _write_cron(line):
 def update_cron(hours):
     """Planifie autovisit tous les N jours (N = hours/24) à 6h, sans toucher au reste du crontab."""
     n = max(1, int(hours) // 24)
-    return _write_cron("0 6 */%d * * %s --json-output >> %s 2>&1" % (n, SCRIPT, LOGFILE))
+    return _write_cron("0 6 */%d * * %s --json-output >> %s 2>&1 ; /usr/bin/python3 %s --check-alerts >> %s 2>&1" % (n, SCRIPT, LOGFILE, WEBAPI, LOGFILE))
 
 
 def cron_schedule(opts):
@@ -433,7 +436,7 @@ def cron_schedule(opts):
 
 def set_cron(opts):
     """Écrit la ligne autovisit selon une planification structurée."""
-    line = "%s %s --json-output >> %s 2>&1" % (cron_schedule(opts), SCRIPT, LOGFILE)
+    line = "%s %s --json-output >> %s 2>&1 ; /usr/bin/python3 %s --check-alerts >> %s 2>&1" % (cron_schedule(opts), SCRIPT, LOGFILE, WEBAPI, LOGFILE)
     return _write_cron(line)
 
 
@@ -817,7 +820,8 @@ def _alert_log(msg):
 # ===== Alertes / notifications (email SMTP, Telegram, webhook/ntfy) =====
 def read_alerts():
     base = {"email": {}, "telegram": {}, "webhook": {}, "browser": {"enabled": False},
-            "on_failure": False, "on_recovery": False, "on_each_run": False, "on_stats_na": False}
+            "on_failure": False, "on_recovery": False, "on_each_run": False, "on_stats_na": False,
+            "stats_na_fields": ["upload"]}
     try:
         d = json.load(open(ALERTS_FILE, encoding="utf-8"))
         if isinstance(d, dict):
@@ -869,6 +873,10 @@ def _update_alerts(incoming):
         cur["on_recovery"] = bool(incoming.get("on_recovery"))
         cur["on_each_run"] = bool(incoming.get("on_each_run"))
         cur["on_stats_na"] = bool(incoming.get("on_stats_na"))
+        if "stats_na_fields" in incoming:
+            _allowed = ("upload", "download", "ratio", "bonus", "seeding", "class")
+            _f = incoming.get("stats_na_fields") or []
+            cur["stats_na_fields"] = [k for k in _f if k in _allowed] or ["upload"]
     if "browser" in incoming:
         cur["browser"] = {"enabled": bool((incoming.get("browser") or {}).get("enabled"))}
     write_alerts(cur)
@@ -988,18 +996,40 @@ def check_and_alert():
             msgs.append("Sites retablis (de nouveau OK) : " + ", ".join(recovered) + ".")
         na_sites = []
         if cfg.get("on_stats_na"):
+            _MISS = object()
+            _fields = cfg.get("stats_na_fields") or ["upload"]
             def _na(v):
                 return v is None or (isinstance(v, str) and (v.strip() == "" or v.strip().upper() == "N/A"))
+            def _field_of(st, f):
+                # status stocke stats soit en dict, soit en chaine "upload: X | download: Y | ..."
+                if isinstance(st, dict):
+                    return st.get(f, _MISS)
+                if isinstance(st, str):
+                    for part in st.split("|"):
+                        k, sep, v = part.partition(":")
+                        if sep and k.strip().lower() == f.lower():
+                            return v.strip()
+                    return _MISS
+                return _MISS
+            _detail = {}
             for s in sites:
                 if not s.get("ok", True):
                     continue  # echec de visite : deja couvert par on_failure
-                stats = s.get("stats") or s.get("stats_json") or s.get("extra_stats") or {}
-                if isinstance(stats, dict) and "upload" in stats and _na(stats.get("upload")):
-                    na_sites.append(s.get("name", s.get("slug", "?")))
+                st = s.get("stats") or s.get("stats_json") or s.get("extra_stats") or {}
+                na_here = []
+                for f in _fields:
+                    v = _field_of(st, f)
+                    if v is not _MISS and _na(v):
+                        na_here.append(f)
+                if na_here:
+                    nm = s.get("name", s.get("slug", "?"))
+                    _detail[nm] = na_here
+                    na_sites.append(nm)
             na_sites = sorted(na_sites)
             new_na = [n for n in na_sites if n not in (cfg.get("_last_stats_na") or [])]
             if new_na:
-                msgs.append("Statistiques non recuperees (upload = N/A) sur : " + ", ".join(new_na)
+                _parts = ["%s (%s)" % (n, ", ".join(_detail[n])) for n in new_na]
+                msgs.append("Statistiques non recuperees sur : " + ", ".join(_parts)
                             + ". Probablement une erreur de recuperation/renouvellement de cookie -- verifie ou reimporte les cookies de session.")
         for m in msgs:
             send_alert("Malinois : alerte visite", m)
@@ -1903,6 +1933,9 @@ if __name__ == "__main__":
         https = write_nginx_from_state()
         print("nginx config ecrite (%s) -> %s" % ("HTTPS" if https else "HTTP", NGINX_SITE), flush=True)
         sys.exit(0)
+    if "--check-alerts" in sys.argv:
+        check_and_alert()
+        sys.exit(0)
     print("web-api v5 sur http://%s:%d" % (HOST, PORT), flush=True)
     ThreadingHTTPServer((HOST, PORT), H).serve_forever()
 PYEOF
@@ -2568,7 +2601,7 @@ cat > /tmp/addsite.js << 'JSEOF'
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var MALINOIS_VER="123";          // numéro de build interne (incrémenté à chaque livraison)
+  var MALINOIS_VER="125";          // numéro de build interne (incrémenté à chaque livraison)
   var APP_VERSION=(parseInt(MALINOIS_VER,10)/100).toFixed(2);  // version affichée = build/100 (ex. 102 -> 1.02)
   var alertsCfg=null;             // dernière config alertes connue (pour notifs navigateur)
   var _brPrevFailed=null;         // mémoire des sites en échec (notifs navigateur, anti-spam côté client)
@@ -2711,6 +2744,7 @@ cat > /tmp/addsite.js << 'JSEOF'
     SQ("#al-onrecover").checked=!!a.on_recovery;
     SQ("#al-oneach").checked=!!a.on_each_run;
     if(SQ("#al-onstatsna")) SQ("#al-onstatsna").checked=!!a.on_stats_na;
+    (function(){ var f=a.stats_na_fields||["upload"]; document.querySelectorAll(".al-naf").forEach(function(c){ c.checked=f.indexOf(c.value)>=0; }); })();
   }
   function chPayload(ch){
     if(ch==="email") return {channel:"email", email:{ enabled:SQ("#al-em-on").checked, host:SQ("#al-em-host").value.trim(),
@@ -2743,7 +2777,8 @@ cat > /tmp/addsite.js << 'JSEOF'
   function saveTypes(){
     post("/alerts", {types:true, on_failure:SQ("#al-onfail").checked,
       on_recovery:SQ("#al-onrecover").checked, on_each_run:SQ("#al-oneach").checked,
-      on_stats_na:(SQ("#al-onstatsna")?SQ("#al-onstatsna").checked:false)})
+      on_stats_na:(SQ("#al-onstatsna")?SQ("#al-onstatsna").checked:false),
+      stats_na_fields:Array.prototype.slice.call(document.querySelectorAll(".al-naf")).filter(function(c){return c.checked;}).map(function(c){return c.value;})})
       .then(function(j){ if(j&&j.ok&&j.alerts) alertsCfg=j.alerts; }).catch(function(){});
   }
   /* --- notifications navigateur (côté client) --- */
@@ -2777,6 +2812,7 @@ cat > /tmp/addsite.js << 'JSEOF'
     SQ("#al-tg-test").addEventListener("click", function(){ testChannel("telegram", "#al-tg-msg", this); });
     SQ("#al-wh-test").addEventListener("click", function(){ testChannel("webhook", "#al-wh-msg", this); });
     ["#al-onfail","#al-onrecover","#al-oneach","#al-onstatsna"].forEach(function(s){ if(SQ(s)) SQ(s).addEventListener("change", saveTypes); });
+    document.querySelectorAll(".al-naf").forEach(function(c){ c.addEventListener("change", saveTypes); });
     SQ("#al-br-on").addEventListener("change", function(){
       var on=this.checked, self=this;
       if(on && brSupported() && Notification.permission!=="granted"){
@@ -3077,7 +3113,16 @@ cat > /tmp/addsite.js << 'JSEOF'
             <label class="av-check" style="margin:0 0 7px"><input type="checkbox" id="al-onfail"><span>Un site passe en échec</span></label>
             <label class="av-check" style="margin:0 0 7px"><input type="checkbox" id="al-onrecover"><span>Un site se rétablit (de nouveau OK)</span></label>
             <label class="av-check" style="margin:0"><input type="checkbox" id="al-oneach"><span>Résumé après chaque visite (même sans changement)</span></label>
-            <label class="av-check" style="margin:7px 0 0"><input type="checkbox" id="al-onstatsna"><span>Statistiques non récupérées (upload = N/A — probable cookie expiré)</span></label>
+            <label class="av-check" style="margin:7px 0 0"><input type="checkbox" id="al-onstatsna"><span>Statistiques non récupérées (N/A — probable cookie expiré)</span></label>
+            <div id="al-statsna-fields" style="margin:6px 0 0 26px; display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center">
+              <span class="av-hint" style="width:100%; margin:0 0 2px">Champs surveillés (alerte si l'un revient N/A) :</span>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="upload" checked><span>Upload</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="download"><span>Download</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="ratio"><span>Ratio</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="bonus"><span>Bonus</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="seeding"><span>En seed</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="class"><span>Rang</span></label>
+            </div>
           </div>
 
           <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -4665,6 +4710,26 @@ echo -n "  addsite.js servi : version "
 pct exec $CT -- bash -c "grep -o 'MALINOIS_VER=\"[0-9]*\"' /var/www/autovisit/addsite.js | head -1 || echo '(marqueur absent — fichier non a jour !)'"
 echo -n "  web-api.py installe : "
 pct exec $CT -- bash -c "grep -q '_bg_revisit' /opt/tracker-autovisit/web-api.py && echo 'a jour (async revisit)' || echo 'ANCIEN (pas de _bg_revisit)'"
+echo "[final] Patch crontab : evaluation des alertes apres chaque visite planifiee…"
+pct exec $CT -- python3 - <<'PYCRON'
+import subprocess
+try:
+    cur = subprocess.run(["crontab", "-l"], capture_output=True, text=True).stdout
+except Exception:
+    cur = ""
+lines = cur.splitlines()
+has_visit = any("autovisit.py --json-output" in l for l in lines)
+has_alert = any("check-alerts" in l for l in lines)
+if has_visit and not has_alert:
+    tail = " ; /usr/bin/python3 /opt/tracker-autovisit/web-api.py --check-alerts >> /opt/tracker-autovisit/data/logs/cron.log 2>&1"
+    out = [(l + tail) if ("autovisit.py --json-output" in l) else l for l in lines]
+    subprocess.run(["crontab", "-"], input="\n".join(out) + "\n", text=True)
+    print("  crontab patche : alertes evaluees apres chaque visite cron")
+elif has_alert:
+    print("  crontab : deja a jour")
+else:
+    print("  crontab : aucune visite planifiee (rien a patcher)")
+PYCRON
 echo; echo "=== Termine. Recharge http://${CT_IP}/ (Ctrl+Maj+R). ==="
 echo "  - Securite : Parametres > Securite pour definir un mot de passe (et activer le 2FA). Tant qu aucun mot de passe n est defini, l acces reste libre."
 echo "  - Verrouille ? Dans le conteneur : rm /opt/tracker-autovisit/data/auth.json && systemctl restart autovisit-web"

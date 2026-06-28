@@ -290,7 +290,7 @@
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var MALINOIS_VER="123";          // numéro de build interne (incrémenté à chaque livraison)
+  var MALINOIS_VER="125";          // numéro de build interne (incrémenté à chaque livraison)
   var APP_VERSION=(parseInt(MALINOIS_VER,10)/100).toFixed(2);  // version affichée = build/100 (ex. 102 -> 1.02)
   var alertsCfg=null;             // dernière config alertes connue (pour notifs navigateur)
   var _brPrevFailed=null;         // mémoire des sites en échec (notifs navigateur, anti-spam côté client)
@@ -433,6 +433,7 @@
     SQ("#al-onrecover").checked=!!a.on_recovery;
     SQ("#al-oneach").checked=!!a.on_each_run;
     if(SQ("#al-onstatsna")) SQ("#al-onstatsna").checked=!!a.on_stats_na;
+    (function(){ var f=a.stats_na_fields||["upload"]; document.querySelectorAll(".al-naf").forEach(function(c){ c.checked=f.indexOf(c.value)>=0; }); })();
   }
   function chPayload(ch){
     if(ch==="email") return {channel:"email", email:{ enabled:SQ("#al-em-on").checked, host:SQ("#al-em-host").value.trim(),
@@ -465,7 +466,8 @@
   function saveTypes(){
     post("/alerts", {types:true, on_failure:SQ("#al-onfail").checked,
       on_recovery:SQ("#al-onrecover").checked, on_each_run:SQ("#al-oneach").checked,
-      on_stats_na:(SQ("#al-onstatsna")?SQ("#al-onstatsna").checked:false)})
+      on_stats_na:(SQ("#al-onstatsna")?SQ("#al-onstatsna").checked:false),
+      stats_na_fields:Array.prototype.slice.call(document.querySelectorAll(".al-naf")).filter(function(c){return c.checked;}).map(function(c){return c.value;})})
       .then(function(j){ if(j&&j.ok&&j.alerts) alertsCfg=j.alerts; }).catch(function(){});
   }
   /* --- notifications navigateur (côté client) --- */
@@ -499,6 +501,7 @@
     SQ("#al-tg-test").addEventListener("click", function(){ testChannel("telegram", "#al-tg-msg", this); });
     SQ("#al-wh-test").addEventListener("click", function(){ testChannel("webhook", "#al-wh-msg", this); });
     ["#al-onfail","#al-onrecover","#al-oneach","#al-onstatsna"].forEach(function(s){ if(SQ(s)) SQ(s).addEventListener("change", saveTypes); });
+    document.querySelectorAll(".al-naf").forEach(function(c){ c.addEventListener("change", saveTypes); });
     SQ("#al-br-on").addEventListener("change", function(){
       var on=this.checked, self=this;
       if(on && brSupported() && Notification.permission!=="granted"){
@@ -799,7 +802,16 @@
             <label class="av-check" style="margin:0 0 7px"><input type="checkbox" id="al-onfail"><span>Un site passe en échec</span></label>
             <label class="av-check" style="margin:0 0 7px"><input type="checkbox" id="al-onrecover"><span>Un site se rétablit (de nouveau OK)</span></label>
             <label class="av-check" style="margin:0"><input type="checkbox" id="al-oneach"><span>Résumé après chaque visite (même sans changement)</span></label>
-            <label class="av-check" style="margin:7px 0 0"><input type="checkbox" id="al-onstatsna"><span>Statistiques non récupérées (upload = N/A — probable cookie expiré)</span></label>
+            <label class="av-check" style="margin:7px 0 0"><input type="checkbox" id="al-onstatsna"><span>Statistiques non récupérées (N/A — probable cookie expiré)</span></label>
+            <div id="al-statsna-fields" style="margin:6px 0 0 26px; display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center">
+              <span class="av-hint" style="width:100%; margin:0 0 2px">Champs surveillés (alerte si l'un revient N/A) :</span>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="upload" checked><span>Upload</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="download"><span>Download</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="ratio"><span>Ratio</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="bonus"><span>Bonus</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="seeding"><span>En seed</span></label>
+              <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="class"><span>Rang</span></label>
+            </div>
           </div>
 
           <div style="display:flex;gap:8px;flex-wrap:wrap">

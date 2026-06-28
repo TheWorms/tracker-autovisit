@@ -107,10 +107,14 @@ colorée, avec un mode **Live** pour suivre une collecte en temps réel.
 
 L'onglet **Configuration → Alertes** permet d'être notifié par **e-mail, Telegram ou webhook**.
 On choisit les déclencheurs : passage d'un site en échec, rétablissement, résumé après chaque
-visite, et **statistiques non récupérées** — quand un site est connecté mais que son upload
-revient `N/A` (cause probable : cookie de session expiré ou renouvellement échoué). Cette
-dernière alerte ne cible que les sites censés exposer un upload, ignore les échecs de login
-(déjà couverts) et n'avertit que sur les nouveaux sites passant en N/A (anti-spam).
+visite, et **statistiques non récupérées** — quand un site est connecté mais qu'un stat revient
+`N/A` (cause probable : cookie de session expiré ou renouvellement échoué). Pour cette dernière,
+on choisit **quels champs surveiller** (upload, download, ratio, bonus, en seed, rang — choix
+multiple) : l'alerte se déclenche si l'un d'eux est N/A, et le message précise lesquels par site.
+Elle ignore les échecs de login (déjà couverts) et n'avertit qu'au passage en N/A (anti-spam).
+
+Les alertes sont évaluées **après chaque visite planifiée (cron)** — pas seulement lors d'un
+rafraîchissement manuel — afin d'être notifié automatiquement.
 
 ### HTTPS
 
