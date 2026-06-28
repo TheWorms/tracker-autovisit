@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy-addsite.sh v125 — auth (login + 2FA optionnel), HTTPS gerable depuis l'UI (auto-signe / import),
+# deploy-addsite.sh v126 — auth (login + 2FA optionnel), HTTPS gerable depuis l'UI (auto-signe / import),
 # v83 : menu Securite > HTTPS (toggle, cert auto-signe ou importe), nginx genere par le backend
 # (--write-nginx, rollback nginx -t), cookie Secure, restriction LAN des fichiers statiques + en-tetes securite.
 # v84 : fix routage nginx des routes /tls/ (location ~ ^/tls/ dediee, deux segments).
@@ -44,6 +44,7 @@
 # v123 : nouvelle alerte "Statistiques non recuperees" -> si un site est OK (connecte) mais que son upload revient N/A (vide ou "N/A"), envoi d'une alerte signalant des stats non recuperees (cause probable : cookie expire/renouvellement echoue). Nouvelle case dans l'onglet Alertes (on_stats_na), anti-spam via _last_stats_na, ne concerne que les sites exposant un champ upload.
 # v124 : FIX alerte stats N/A -> le status stocke stats en CHAINE ("upload: X | download: Y | ...") via format_stats, pas en dict ; l'alerte testait isinstance(dict) et ne se declenchait jamais. Ajout d'un parseur _upload_of qui gere dict ET chaine.
 # v125 : (1) les visites CRON evaluent desormais les alertes -> ligne cron enchaine "autovisit --json-output ; web-api.py --check-alerts" (nouveau mode CLI), + patch idempotent du crontab existant au deploiement ; check_and_alert n'est plus limite au bouton Reactualiser. (2) Choix multiple des champs surveilles pour l'alerte stats N/A (upload/download/ratio/bonus/seeding/rang) via stats_na_fields + multi-select dans l'onglet Alertes ; le message detaille les champs N/A par site.
+# v126 : (1) notif NAVIGATEUR etendue aux stats N/A (memes champs que la config serveur, anti-spam client _brPrevNa) -- avant elle ne couvrait que les echecs ; rappel : ne marche que dashboard ouvert. (2) Onglet Alertes redesigne : bloc "Quand alerter" en carte coherente, champs surveilles dans un encadre, + bouton Enregistrer dedie (avec feedback) en plus de l'auto-save.
 # auth par cle (Nostradamus), rendu propre, logos, configs git fideles.
 # GARDE-FOU : pour desactiver l'auth si verrouille -> 'rm /opt/tracker-autovisit/data/auth.json' puis 'systemctl restart autovisit-web' (dans le conteneur).
 # set -e RETIRE volontairement : une etape intermediaire qui echoue (patcher,
@@ -2601,10 +2602,11 @@ cat > /tmp/addsite.js << 'JSEOF'
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var MALINOIS_VER="125";          // numéro de build interne (incrémenté à chaque livraison)
+  var MALINOIS_VER="126";          // numéro de build interne (incrémenté à chaque livraison)
   var APP_VERSION=(parseInt(MALINOIS_VER,10)/100).toFixed(2);  // version affichée = build/100 (ex. 102 -> 1.02)
   var alertsCfg=null;             // dernière config alertes connue (pour notifs navigateur)
   var _brPrevFailed=null;         // mémoire des sites en échec (notifs navigateur, anti-spam côté client)
+  var _brPrevNa=null;             // mémoire des sites en stats N/A (notifs navigateur)
   try{ console.log("MALINOIS addsite v"+MALINOIS_VER+" (app "+APP_VERSION+")"); }catch(e){}
   function el(html){var d=document.createElement("div");d.innerHTML=html.trim();return d.firstChild;}
   function post(url,obj,timeoutMs){
@@ -2775,11 +2777,11 @@ cat > /tmp/addsite.js << 'JSEOF'
     }).catch(function(){ btn.disabled=false; chMsg(msgSel, "Service injoignable.", false); });
   }
   function saveTypes(){
-    post("/alerts", {types:true, on_failure:SQ("#al-onfail").checked,
+    return post("/alerts", {types:true, on_failure:SQ("#al-onfail").checked,
       on_recovery:SQ("#al-onrecover").checked, on_each_run:SQ("#al-oneach").checked,
       on_stats_na:(SQ("#al-onstatsna")?SQ("#al-onstatsna").checked:false),
       stats_na_fields:Array.prototype.slice.call(document.querySelectorAll(".al-naf")).filter(function(c){return c.checked;}).map(function(c){return c.value;})})
-      .then(function(j){ if(j&&j.ok&&j.alerts) alertsCfg=j.alerts; }).catch(function(){});
+      .then(function(j){ if(j&&j.ok&&j.alerts) alertsCfg=j.alerts; return j; }).catch(function(){});
   }
   /* --- notifications navigateur (côté client) --- */
   function brSupported(){ return ("Notification" in window); }
@@ -2813,6 +2815,10 @@ cat > /tmp/addsite.js << 'JSEOF'
     SQ("#al-wh-test").addEventListener("click", function(){ testChannel("webhook", "#al-wh-msg", this); });
     ["#al-onfail","#al-onrecover","#al-oneach","#al-onstatsna"].forEach(function(s){ if(SQ(s)) SQ(s).addEventListener("change", saveTypes); });
     document.querySelectorAll(".al-naf").forEach(function(c){ c.addEventListener("change", saveTypes); });
+    if(SQ("#al-types-save")) SQ("#al-types-save").addEventListener("click", function(){
+      var m=SQ("#al-types-msg");
+      saveTypes().then(function(j){ if(!m) return; if(j&&j.ok){ m.style.color="var(--good,#22c55e)"; m.textContent="Enregistré ✓"; } else { m.style.color="var(--ko,#e0796f)"; m.textContent="Échec de l'enregistrement"; } setTimeout(function(){ m.textContent=""; }, 2800); });
+    });
     SQ("#al-br-on").addEventListener("change", function(){
       var on=this.checked, self=this;
       if(on && brSupported() && Notification.permission!=="granted"){
@@ -2836,10 +2842,20 @@ cat > /tmp/addsite.js << 'JSEOF'
       if(!brSupported() || Notification.permission!=="granted") return;
       var sites=(status&&status.sites)||[];
       var failed=sites.filter(function(s){return !s.ok;}).map(function(s){return s.name||s.slug||"?";});
-      if(_brPrevFailed===null){ _brPrevFailed=failed; return; }
-      var nw=failed.filter(function(f){return _brPrevFailed.indexOf(f)<0;});
-      if(nw.length){ try{ new Notification("Malinois — site en échec", {body:nw.join(", ")}); }catch(e){} }
-      _brPrevFailed=failed;
+      if(_brPrevFailed===null){ _brPrevFailed=failed; }
+      else { var nw=failed.filter(function(f){return _brPrevFailed.indexOf(f)<0;}); if(nw.length){ try{ new Notification("Malinois — site en échec", {body:nw.join(", ")}); }catch(e){} } _brPrevFailed=failed; }
+      if(alertsCfg.on_stats_na){
+        var flds=alertsCfg.stats_na_fields||["upload"];
+        var isNa=function(v){ return v==null || (typeof v==="string" && (v.trim()===""||v.trim().toUpperCase()==="N/A")); };
+        var fieldOf=function(st,f){
+          if(st && typeof st==="object"){ return (f in st)?st[f]:undefined; }
+          if(typeof st==="string"){ var p=st.split("|"); for(var i=0;i<p.length;i++){ var x=p[i].indexOf(":"); if(x>=0 && p[i].slice(0,x).trim().toLowerCase()===f){ return p[i].slice(x+1).trim(); } } }
+          return undefined;
+        };
+        var na=sites.filter(function(s){ if(!s.ok) return false; var st=s.stats||s.stats_json||s.extra_stats; for(var i=0;i<flds.length;i++){ var v=fieldOf(st,flds[i]); if(v!==undefined && isNa(v)) return true; } return false; }).map(function(s){return s.name||s.slug||"?";});
+        if(_brPrevNa===null){ _brPrevNa=na; }
+        else { var nwn=na.filter(function(f){return _brPrevNa.indexOf(f)<0;}); if(nwn.length){ try{ new Notification("Malinois — stats non récupérées", {body:nwn.join(", ")}); }catch(e){} } _brPrevNa=na; }
+      }
     }catch(e){}
   }
 
@@ -3103,25 +3119,30 @@ cat > /tmp/addsite.js << 'JSEOF'
           <div class="al-block">
             <label class="av-switch-row"><span class="av-switch"><input type="checkbox" id="al-br-on"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>Notifications navigateur</span></label>
             <div style="margin-top:10px">
-              <p class="av-hint" style="margin:0 0 8px">Affiche une notification système quand le dashboard est ouvert dans ce navigateur et qu'un site passe en échec. L'autorisation est demandée par navigateur/appareil.</p>
+              <p class="av-hint" style="margin:0 0 8px">Affiche une notification système quand le dashboard est ouvert dans ce navigateur et qu'un site passe en échec ou que des statistiques ne sont plus récupérées. L'autorisation est demandée par navigateur/appareil.</p>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><button class="av-btn ghost" type="button" id="al-br-test">Tester la notification</button><span class="av-hint" id="al-br-msg"></span></div>
             </div>
           </div>
 
-          <div style="margin:4px 0 14px">
-            <p class="av-hint" style="margin:0 0 9px">Quelles alertes envoyer (à chaque visite planifiée ou rafraîchissement) — enregistré automatiquement :</p>
-            <label class="av-check" style="margin:0 0 7px"><input type="checkbox" id="al-onfail"><span>Un site passe en échec</span></label>
-            <label class="av-check" style="margin:0 0 7px"><input type="checkbox" id="al-onrecover"><span>Un site se rétablit (de nouveau OK)</span></label>
-            <label class="av-check" style="margin:0"><input type="checkbox" id="al-oneach"><span>Résumé après chaque visite (même sans changement)</span></label>
-            <label class="av-check" style="margin:7px 0 0"><input type="checkbox" id="al-onstatsna"><span>Statistiques non récupérées (N/A — probable cookie expiré)</span></label>
-            <div id="al-statsna-fields" style="margin:6px 0 0 26px; display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center">
-              <span class="av-hint" style="width:100%; margin:0 0 2px">Champs surveillés (alerte si l'un revient N/A) :</span>
+          <div class="al-block">
+            <div style="font-weight:600; margin:0 0 3px">Quand alerter</div>
+            <p class="av-hint" style="margin:0 0 12px">Conditions évaluées après chaque visite planifiée (cron) et à chaque rafraîchissement manuel.</p>
+            <label class="av-check" style="margin:0 0 8px"><input type="checkbox" id="al-onfail"><span>Un site passe en échec</span></label>
+            <label class="av-check" style="margin:0 0 8px"><input type="checkbox" id="al-onrecover"><span>Un site se rétablit (de nouveau OK)</span></label>
+            <label class="av-check" style="margin:0 0 8px"><input type="checkbox" id="al-oneach"><span>Résumé après chaque visite (même sans changement)</span></label>
+            <label class="av-check" style="margin:0"><input type="checkbox" id="al-onstatsna"><span>Statistiques non récupérées (N/A — probable cookie expiré)</span></label>
+            <div id="al-statsna-fields" style="margin:10px 0 0; padding:11px 13px; border:1px solid var(--border,#2a2f37); border-radius:9px; display:flex; flex-wrap:wrap; gap:9px 16px; align-items:center">
+              <span class="av-hint" style="width:100%; margin:0 0 3px">Champs surveillés — alerte si l'un revient N/A :</span>
               <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="upload" checked><span>Upload</span></label>
               <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="download"><span>Download</span></label>
               <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="ratio"><span>Ratio</span></label>
               <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="bonus"><span>Bonus</span></label>
               <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="seeding"><span>En seed</span></label>
               <label class="av-check" style="margin:0"><input type="checkbox" class="al-naf" value="class"><span>Rang</span></label>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:13px">
+              <button class="av-btn save" type="button" id="al-types-save">Enregistrer</button>
+              <span class="av-hint" id="al-types-msg"></span>
             </div>
           </div>
 
