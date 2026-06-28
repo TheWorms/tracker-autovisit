@@ -189,9 +189,6 @@ Outils tiers utilisés par la collecte : [Byparr](https://github.com/ThePhaseles
 
 ```
 .
-├── autovisit.py               # outil de collecte (amont lol-powa, patché au déploiement)
-├── deploy-addsite.sh          # SOURCE UNIQUE : installeur + tout le dashboard en heredocs
-├── build-sources.sh           # régénère api/ web/ patchers/ … depuis deploy-addsite.sh
 ├── Dockerfile                 # image autonome (overlay + outil)
 ├── docker-compose.yml         # malinois + byparr
 ├── .env.example
@@ -200,13 +197,12 @@ Outils tiers utilisés par la collecte : [Byparr](https://github.com/ThePhaseles
 │   ├── supervisord.conf       # nginx + web-api + cron
 │   ├── nginx.conf             # reverse proxy générique
 │   └── requirements.txt       # deps overlay + runtime
-├── api/web-api.py             # backend — généré depuis deploy-addsite.sh
-├── web/{index.html,addsite.js}# dashboard — généré depuis deploy-addsite.sh
-├── patchers/                  # patches autovisit.py — générés depuis deploy-addsite.sh
+├── deploy-addsite.sh          # installeur classique (MODE=local|lxc)
+├── api/web-api.py             # backend (gestion sites, réglages, auth, inspecteur)
+├── web/{index.html,addsite.js}# dashboard
+├── patchers/                  # patches additifs pour autovisit.py
 ├── tools/                     # render_logos.py, fetch_favicons.py
 ├── systemd/, nginx/           # unités pour l'install classique
 ├── data/                      # manifeste logos + cibles favicons (le reste est runtime, ignoré par git)
 └── docs/img/                  # captures du README
 ```
-
-> **Source unique.** Le code du dashboard (`api/web-api.py`, `web/index.html`, `web/addsite.js`, `patchers/`) vit en **heredocs** dans `deploy-addsite.sh` — c'est ce fichier qu'on édite. Les fichiers éclatés correspondants sont **régénérés** par `./build-sources.sh`, à relancer après chaque modification de `deploy-addsite.sh` (puis `git commit`). Ils restent ainsi toujours alignés, et le build Docker sert exactement le même code que l'install LXC.
