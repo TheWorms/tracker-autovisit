@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy-addsite.sh v126 — auth (login + 2FA optionnel), HTTPS gerable depuis l'UI (auto-signe / import),
+# deploy-addsite.sh v137 — auth (login + 2FA optionnel), HTTPS gerable depuis l'UI (auto-signe / import),
 # v83 : menu Securite > HTTPS (toggle, cert auto-signe ou importe), nginx genere par le backend
 # (--write-nginx, rollback nginx -t), cookie Secure, restriction LAN des fichiers statiques + en-tetes securite.
 # v84 : fix routage nginx des routes /tls/ (location ~ ^/tls/ dediee, deux segments).
@@ -45,6 +45,17 @@
 # v124 : FIX alerte stats N/A -> le status stocke stats en CHAINE ("upload: X | download: Y | ...") via format_stats, pas en dict ; l'alerte testait isinstance(dict) et ne se declenchait jamais. Ajout d'un parseur _upload_of qui gere dict ET chaine.
 # v125 : (1) les visites CRON evaluent desormais les alertes -> ligne cron enchaine "autovisit --json-output ; web-api.py --check-alerts" (nouveau mode CLI), + patch idempotent du crontab existant au deploiement ; check_and_alert n'est plus limite au bouton Reactualiser. (2) Choix multiple des champs surveilles pour l'alerte stats N/A (upload/download/ratio/bonus/seeding/rang) via stats_na_fields + multi-select dans l'onglet Alertes ; le message detaille les champs N/A par site.
 # v126 : (1) notif NAVIGATEUR etendue aux stats N/A (memes champs que la config serveur, anti-spam client _brPrevNa) -- avant elle ne couvrait que les echecs ; rappel : ne marche que dashboard ouvert. (2) Onglet Alertes redesigne : bloc "Quand alerter" en carte coherente, champs surveilles dans un encadre, + bouton Enregistrer dedie (avec feedback) en plus de l'auto-save.
+# v127 : FIX alertes -- la revisite unitaire d'un site (bouton revisite, route /revisit -> _bg_revisit) appelle desormais check_and_alert(), comme le Reactualiser global. Avant, une revisite mettait status.json a jour (donc la notif NAVIGATEUR cote client se declenchait) mais n'evaluait pas les alertes serveur -> aucun envoi mail/telegram/webhook. Desormais coherent : revisite unitaire = mail/telegram/webhook + navigateur.
+# v128 : (1) AUTO-RAFRAICHISSEMENT du dashboard -- poll silencieux de status.json toutes les 30 s (refresh(silent) sans spinner ni delai), en pause si l'onglet est en arriere-plan ou si une modale est ouverte. Les changements pousses par le CRON (ex. un site qui revient en ligne) s'affichent desormais SANS action manuelle. (2) Bouton "Vider" dans l'onglet Logs -> route POST /logsclear (tronque le journal selectionne dans data/logs ; letsencrypt.log protege car journal systeme).
+# v129 : MESSAGES D'ALERTE PERSONNALISES PAR CANAL -- chaque canal (e-mail, Telegram) peut definir un gabarit complet (champ "template" dans sa config). Variables : {site} {statut} {stats} {message} {date} {heure} {total} {nb_echec} {sites}. Pour que {site}/{statut}/{stats} aient un sens, les alertes echec/retabli/stats-N-A sont desormais envoyees PAR SITE (le resume "a chaque visite" reste agrege). Gabarit vide = message par defaut (comportement inchange). Rendu via _render_tpl ; send_alert(subject, body, ctx) ; check_and_alert reecrit pour emettre par site avec contexte.
+# v130 : (1) le bouton "Vider" gere desormais AUSSI letsencrypt.log (tronque /var/log/letsencrypt/letsencrypt.log ; le service tourne en root, certbot le realimente). (2) APERCU LIVE du gabarit d'alerte sous chaque zone (e-mail/Telegram) : rendu mis a jour a la frappe avec des valeurs d'exemple ; "(message par defaut)" si vide.
+# v131 : DETECTION CHALLENGE CLOUDFLARE -- patch autovisit (visit_site_session + verify Playwright) : si la page de verif est une page de defi CF ("just a moment"/"un instant"/_cf_chl_opt/challenge-platform/cf-turnstile/cf_chl_), le site est marque EN ECHEC au lieu d'un faux "OK" vert + stats N/A. Declenche donc les alertes on_failure. Utile pour tout tracker passant derriere Cloudflare (cas YGGReborn). Idempotent (marqueur MALINOIS-CF-CHALLENGE), recompilation verifiee.
+# v132 : auto-refresh -- actualisation IMMEDIATE au retour sur l'onglet (visibilitychange). Le poll 30 s etant en pause quand l'onglet est en arriere-plan, un changement pousse pendant ce temps (visite CRON/CLI) ne s'affichait qu'au cycle suivant ; desormais des qu'on revient sur l'onglet, refresh(true) immediat (sauf si une modale est ouverte).
+# v133 : GABARITS D'ALERTE ENRICHIS -- chaque canal (e-mail/Telegram) a desormais ENTETE + CORPS + BAS DE PAGE (champs header/footer en plus de template), chacun avec les memes variables ; le message final = entete + corps + pied (corps = gabarit si defini, sinon message par defaut selon l'evenement). Barre d'EMOJIS cliquable au-dessus (insertion au curseur, pratique pour Telegram). Apercu live assemble entete+corps+pied. send_alert assemble les 3 parties par canal.
+# v134 : les composeurs de modeles passent dans un onglet dedie "Modeles" (sous Reglages, a cote d'Alertes) -> meilleure lisibilite ; l'onglet Alertes ne garde que la config des canaux + conditions. Les VARIABLES deviennent CLIQUABLES (barre de puces, insertion au curseur comme les emojis). Bouton "Enregistrer le modele" par canal dans l'onglet Modeles.
+# v135 : MODELE UNIQUE COMMUN -- retour a un seul gabarit (entete+corps+pied) partage par TOUS les canaux (e-mail, Telegram, ntfy), stocke au niveau racine de la config (template/header/footer). Onglet "Modeles" supprime ; le composeur unique (avec emojis + variables cliquables + apercu) est place TOUT EN BAS de l'onglet Alertes. send_alert assemble une fois et envoie le meme message partout. _update_alerts gere la sauvegarde via {tpl:true,...}. Fini la duplication par canal.
+# v136 : COOKIES EN CHAMPS SEPARES -- le textarea JSON (#av-cookies) du formulaire d'inspection est remplace par des lignes nom/valeur (#av-ckrows + bouton "+ Ajouter un cookie"). Fini le "tableau JSON attendu" et les soucis de format. parseCookies lit les lignes -> [{name,value,domain,path:"/",secure,httpOnly}], rejette les lignes incompletes ET detecte les valeurs tronquees (presence de "…"/non-ASCII = copie depuis l'onglet Reseau au lieu de F12>Stockage). Helpers ckAddRow/ckReset/ckHasData ; reset()/focus/check de presence adaptes.
+# v137 : les 3 lignes cookies par defaut ont des placeholders DISTINCTS (cookie de session / cookie « se souvenir » / cookie Cloudflare) au lieu de "ex. cf_clearance" repete -- ckAddRow accepte un hint, ckReset le passe par ligne. Lignes ajoutees via "+ Ajouter" : placeholder generique "nom du cookie".
 # auth par cle (Nostradamus), rendu propre, logos, configs git fideles.
 # GARDE-FOU : pour desactiver l'auth si verrouille -> 'rm /opt/tracker-autovisit/data/auth.json' puis 'systemctl restart autovisit-web' (dans le conteneur).
 # set -e RETIRE volontairement : une etape intermediaire qui echoue (patcher,
@@ -552,6 +563,7 @@ _revisiting_lock = threading.Lock()
 def _bg_revisit(slug, name):
     try:
         regenerate_one(name)
+        check_and_alert()   # evalue les alertes comme _bg_refresh (sinon : notif navigateur sans mail/telegram)
     finally:
         with _revisiting_lock:
             _revisiting.discard(slug)
@@ -822,7 +834,7 @@ def _alert_log(msg):
 def read_alerts():
     base = {"email": {}, "telegram": {}, "webhook": {}, "browser": {"enabled": False},
             "on_failure": False, "on_recovery": False, "on_each_run": False, "on_stats_na": False,
-            "stats_na_fields": ["upload"]}
+            "stats_na_fields": ["upload"], "template": "", "header": "", "footer": ""}
     try:
         d = json.load(open(ALERTS_FILE, encoding="utf-8"))
         if isinstance(d, dict):
@@ -880,6 +892,10 @@ def _update_alerts(incoming):
             cur["stats_na_fields"] = [k for k in _f if k in _allowed] or ["upload"]
     if "browser" in incoming:
         cur["browser"] = {"enabled": bool((incoming.get("browser") or {}).get("enabled"))}
+    if incoming.get("tpl"):
+        cur["template"] = incoming.get("template", "") or ""
+        cur["header"] = incoming.get("header", "") or ""
+        cur["footer"] = incoming.get("footer", "") or ""
     write_alerts(cur)
     return cur
 
@@ -944,14 +960,44 @@ def _send_webhook(wh, subject, body):
 _SENDERS = {"email": _send_email, "telegram": _send_telegram, "webhook": _send_webhook}
 
 
-def send_alert(subject, body):
-    """Envoie via tous les canaux actives. Retourne [(canal, ok, erreur)]."""
+def _fmt_stats(st):
+    """Formate les stats d'un site en chaine lisible pour la variable {stats}."""
+    if isinstance(st, dict):
+        st = {k: v for k, v in st.items() if not str(k).startswith("_malinois")}
+        if not st:
+            return "N/A"
+        return " | ".join("%s: %s" % (k, v) for k, v in st.items())
+    if isinstance(st, str):
+        return st.strip() or "N/A"
+    return "N/A"
+
+
+def _render_tpl(tpl, ctx):
+    """Remplace les variables {cle} du gabarit par les valeurs de ctx (remplacement
+    simple, n'echoue pas sur une accolade isolee, contrairement a str.format)."""
+    out = tpl
+    for k, v in (ctx or {}).items():
+        out = out.replace("{" + k + "}", str(v))
+    return out
+
+
+def send_alert(subject, body, ctx=None):
+    """Envoie via tous les canaux actives. UN SEUL modele commun (entete + corps +
+    pied, au niveau racine de la config) est rendu avec ctx puis envoye tel quel a
+    tous les canaux. Corps = gabarit si defini, sinon le message par defaut.
+    Retourne [(canal, ok, erreur)]."""
     cfg = read_alerts()
+    tpl = (cfg.get("template") or "").strip()
+    core = _render_tpl(tpl, ctx) if tpl else body
+    hdr = _render_tpl(cfg.get("header") or "", ctx).strip()
+    ftr = _render_tpl(cfg.get("footer") or "", ctx).strip()
+    parts = [p for p in (hdr, core, ftr) if p]
+    msg = "\n\n".join(parts) if parts else body
     res = []
     for ch in ("email", "telegram", "webhook"):
         c = cfg.get(ch) or {}
         if c.get("enabled"):
-            ok, err = _SENDERS[ch](c, subject, body)
+            ok, err = _SENDERS[ch](c, subject, msg)
             res.append((ch, ok, err))
             _alert_log("envoi %s [%s] : %s" % (ch, subject, "OK" if ok else ("ECHEC — " + err)))
     return res
@@ -982,19 +1028,31 @@ def check_and_alert():
         prev = cfg.get("_last_failed") or []
         new_fail = [f for f in failed if f not in prev]
         recovered = [f for f in prev if f not in failed]
-        msgs = []
+        import datetime as _dtmod
+        _now = _dtmod.datetime.now()
+        _date = _now.strftime("%d/%m/%Y"); _heure = _now.strftime("%H:%M")
+        by_name = {s.get("name", s.get("slug", "?")): s for s in sites}
+        def _stats_of(nm):
+            s = by_name.get(nm) or {}
+            return _fmt_stats(s.get("stats") or s.get("stats_json") or s.get("extra_stats") or {})
+        def _emit(default_body, extra):
+            ctx = {"date": _date, "heure": _heure, "total": total, "nb_echec": len(failed),
+                   "sites": (", ".join(failed) or "aucun"), "message": default_body}
+            ctx.update(extra)
+            send_alert("Malinois : alerte visite", default_body, ctx)
         if cfg.get("on_each_run"):
             resume = "Resume visite : %d site(s), %d en echec." % (total, len(failed))
             if failed:
                 resume += " En echec : " + ", ".join(failed) + "."
-            msgs.append(resume)
+            _emit(resume, {"site": "(tous)", "statut": "résumé", "stats": ""})
         if cfg.get("on_failure") and new_fail:
-            m = "Nouveaux sites en echec : " + ", ".join(new_fail) + "."
-            if len(failed) > len(new_fail):
-                m += " (total en echec : " + ", ".join(failed) + ")"
-            msgs.append(m)
+            for _nm in new_fail:
+                _emit("Site en echec : %s." % _nm,
+                      {"site": _nm, "statut": "en échec", "stats": _stats_of(_nm)})
         if cfg.get("on_recovery") and recovered:
-            msgs.append("Sites retablis (de nouveau OK) : " + ", ".join(recovered) + ".")
+            for _nm in recovered:
+                _emit("Site retabli (de nouveau OK) : %s." % _nm,
+                      {"site": _nm, "statut": "rétabli", "stats": _stats_of(_nm)})
         na_sites = []
         if cfg.get("on_stats_na"):
             _MISS = object()
@@ -1029,11 +1087,10 @@ def check_and_alert():
             na_sites = sorted(na_sites)
             new_na = [n for n in na_sites if n not in (cfg.get("_last_stats_na") or [])]
             if new_na:
-                _parts = ["%s (%s)" % (n, ", ".join(_detail[n])) for n in new_na]
-                msgs.append("Statistiques non recuperees sur : " + ", ".join(_parts)
-                            + ". Probablement une erreur de recuperation/renouvellement de cookie -- verifie ou reimporte les cookies de session.")
-        for m in msgs:
-            send_alert("Malinois : alerte visite", m)
+                for _nm in new_na:
+                    _emit("Statistiques non recuperees sur %s (%s). Probablement une erreur de recuperation/renouvellement de cookie -- verifie ou reimporte les cookies de session." % (_nm, ", ".join(_detail[_nm])),
+                          {"site": _nm, "statut": "stats N/A", "stats": _stats_of(_nm)})
+        # (les envois sont faits au fil de l'eau par _emit ci-dessus, par site)
         changed = False
         if failed != prev:
             cfg["_last_failed"] = failed; changed = True
@@ -1159,7 +1216,7 @@ def gen_selfsigned(opts):
 
 def _nginx_locations():
     api = ("test|confirm|cancel|delete|toggle|sites|site|settings|favicon|logosync|inspect|"
-           "logs|favsync|refreshall|refreshstate|revisit|revisitstate|sitestats|siterestore|cron")
+           "logs|logsclear|favsync|refreshall|refreshstate|revisit|revisitstate|sitestats|siterestore|cron")
     return (
         "    add_header X-Frame-Options DENY;\n"
         "    add_header X-Content-Type-Options nosniff;\n"
@@ -1777,6 +1834,26 @@ class H(BaseHTTPRequestHandler):
                 return self._send(400, {"ok": False, "error": str(e)})
             return self._send(200, {"ok": True, "slug": slug, "keys": sorted((d.get("stats") or {}).keys())})
 
+        if route == "/logsclear":
+            # Vide (tronque) le journal selectionne. data/logs/* + letsencrypt.log
+            # (journal systeme de certbot ; service en root, certbot le realimente).
+            logsdir = os.path.join(BASE, "data", "logs")
+            want = os.path.basename(data.get("file", "") or "")
+            if not want:
+                return self._send(400, {"ok": False, "error": "Aucun journal indique."})
+            if want == "letsencrypt.log":
+                path = "/var/log/letsencrypt/letsencrypt.log"
+            else:
+                path = os.path.join(logsdir, want)
+                if os.path.realpath(os.path.dirname(path)) != os.path.realpath(logsdir):
+                    return self._send(400, {"ok": False, "error": "Chemin de journal invalide."})
+            try:
+                if os.path.isfile(path):
+                    with io.open(path, "w", encoding="utf-8") as f:
+                        f.write("")
+                return self._send(200, {"ok": True, "file": want})
+            except Exception as e:
+                return self._send(500, {"ok": False, "error": "Vidage impossible : %s" % e})
         if route == "/siterestore":
             # Restaure la config de stats depuis la derniere sauvegarde
             # (data/.statsbak/<slug>.json), ecrite avant le dernier enregistrement.
@@ -2191,6 +2268,44 @@ if "malinois-cookie-playwright" not in src:
     else:
         print("MALINOIS patch : ancre new_page introuvable -- cookie-playwright ignore")
 
+# ---- Patch : detection challenge Cloudflare (mode session + verify Playwright) ----
+if "MALINOIS-CF-CHALLENGE" not in src:
+    _cf_done = []
+    a_sess = '    body_lower = rv.text.lower()\n\n    # Stats'
+    blk4 = "\n".join([
+        '    body_lower = rv.text.lower()',
+        '    # MALINOIS-CF-CHALLENGE : page de defi Cloudflare -> echec (evite un faux OK + stats N/A)',
+        '    if ("_cf_chl_opt" in rv.text or "challenge-platform" in body_lower',
+        '            or "cf-turnstile" in body_lower or "cf_chl_" in body_lower',
+        '            or "/cdn-cgi/challenge" in body_lower):',
+        '        _cfmsg = "ECHEC [" + name + "] Challenge Cloudflare detecte (page de defi au lieu du contenu)"',
+        '        log.warning(_cfmsg)',
+        '        return False, _cfmsg, None',
+        '',
+        '    # Stats',
+    ])
+    if a_sess in src:
+        src = src.replace(a_sess, blk4, 1); _cf_done.append("session")
+    a_pw = '        body_lower = rv.text.lower()\n\n        site_stats = site.get("stats", {})'
+    blk8 = "\n".join([
+        '        body_lower = rv.text.lower()',
+        '        # MALINOIS-CF-CHALLENGE : page de defi Cloudflare -> echec',
+        '        if ("_cf_chl_opt" in rv.text or "challenge-platform" in body_lower',
+        '                or "cf-turnstile" in body_lower or "cf_chl_" in body_lower',
+        '                or "/cdn-cgi/challenge" in body_lower):',
+        '            _cfmsg = "ECHEC [" + name + "] Challenge Cloudflare detecte (page de defi au lieu du contenu)"',
+        '            log.warning(_cfmsg)',
+        '            return False, _cfmsg, None',
+        '',
+        '        site_stats = site.get("stats", {})',
+    ])
+    if a_pw in src:
+        src = src.replace(a_pw, blk8, 1); _cf_done.append("playwright-verify")
+    if _cf_done:
+        applied.append("cf-challenge[" + "+".join(_cf_done) + "]")
+    else:
+        print("MALINOIS patch : ancres CF-challenge introuvables -- ignore")
+
 if not applied:
     print("MALINOIS patch : rien a faire (deja applique)."); sys.exit(0)
 
@@ -2602,7 +2717,7 @@ cat > /tmp/addsite.js << 'JSEOF'
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var MALINOIS_VER="126";          // numéro de build interne (incrémenté à chaque livraison)
+  var MALINOIS_VER="137";          // numéro de build interne (incrémenté à chaque livraison)
   var APP_VERSION=(parseInt(MALINOIS_VER,10)/100).toFixed(2);  // version affichée = build/100 (ex. 102 -> 1.02)
   var alertsCfg=null;             // dernière config alertes connue (pour notifs navigateur)
   var _brPrevFailed=null;         // mémoire des sites en échec (notifs navigateur, anti-spam côté client)
@@ -2729,6 +2844,44 @@ cat > /tmp/addsite.js << 'JSEOF'
   }
 
   function alSet(sel, on){ var e=SQ(sel); if(!e) return; e.textContent=on?"✓ déjà défini":""; e.className="al-set"+(on?" on":""); }
+  var AL_SAMPLE={site:"The Old School", statut:"en échec", stats:"upload: 1.2 To | ratio: 4.8", message:"Site en echec : The Old School.", date:"28/06/2026", heure:"19:05", total:"12", nb_echec:"1", sites:"The Old School"};
+  var AL_EMOJIS=["⚠️","🚨","✅","❌","🔴","🟢","📊","📈","📉","🔔","🕓","🌐","⬆️","🔄"];
+  var AL_VARS=["{site}","{statut}","{stats}","{message}","{date}","{heure}","{total}","{nb_echec}","{sites}"];
+  function alRenderTpl(t){ var o=t||""; for(var k in AL_SAMPLE){ o=o.split("{"+k+"}").join(AL_SAMPLE[k]); } return o; }
+  function alPreview(ch){
+    var h=SQ("#al-"+ch+"-hdr"), b=SQ("#al-"+ch+"-tpl"), f=SQ("#al-"+ch+"-ftr"), pv=SQ("#al-"+ch+"-tpl-prev");
+    if(!pv) return;
+    var hd=(h&&h.value.trim())?alRenderTpl(h.value):"";
+    var hasBody=!!(b&&b.value.trim());
+    var bd=hasBody?alRenderTpl(b.value):"« corps par défaut (selon l'événement) »";
+    var ft=(f&&f.value.trim())?alRenderTpl(f.value):"";
+    pv.textContent=[hd,bd,ft].filter(function(x){return x;}).join("\n\n");
+    pv.style.fontStyle=hasBody?"normal":"italic";
+  }
+  function alInsertText(ch, text){
+    var fields=[SQ("#al-"+ch+"-hdr"), SQ("#al-"+ch+"-tpl"), SQ("#al-"+ch+"-ftr")];
+    var ta=document.activeElement;
+    if(fields.indexOf(ta)<0) ta=SQ("#al-"+ch+"-tpl");
+    if(!ta) return;
+    var s=(ta.selectionStart!=null)?ta.selectionStart:ta.value.length;
+    var e=(ta.selectionEnd!=null)?ta.selectionEnd:ta.value.length;
+    ta.value=ta.value.slice(0,s)+text+ta.value.slice(e);
+    ta.selectionStart=ta.selectionEnd=s+text.length;
+    ta.focus(); alPreview(ch);
+  }
+  function alBuildChips(ch, barSel, items, font, mono){
+    var bar=SQ(barSel); if(!bar||bar.dataset.built) return;
+    bar.dataset.built="1";
+    items.forEach(function(it){
+      var b=document.createElement("button");
+      b.type="button"; b.textContent=it;
+      b.style.cssText="border:1px solid;opacity:.65;background:transparent;border-radius:6px;padding:0 6px;margin:1px;cursor:pointer;line-height:1.7;font-size:"+font+(mono?";font-family:ui-monospace,Menlo,Consolas,monospace":"");
+      b.addEventListener("mousedown", function(ev){ ev.preventDefault(); alInsertText(ch, it); });
+      bar.appendChild(b);
+    });
+  }
+  function alBuildEmoji(ch){ alBuildChips(ch, "#al-"+ch+"-emobar", AL_EMOJIS, "15px", false); }
+  function alBuildVars(ch){ alBuildChips(ch, "#al-"+ch+"-varbar", AL_VARS, "12px", true); }
   function fillAlerts(a){
     a=a||{}; alertsCfg=a;
     var em=a.email||{}, tg=a.telegram||{}, wh=a.webhook||{}, br=a.browser||{};
@@ -2739,6 +2892,9 @@ cat > /tmp/addsite.js << 'JSEOF'
     SQ("#al-em-pass").value=""; alSet("#al-em-pwset", em.password_set);
     SQ("#al-tg-on").checked=!!tg.enabled;
     SQ("#al-tg-chat").value=tg.chat_id||""; SQ("#al-tg-token").value=""; alSet("#al-tg-tokset", tg.token_set);
+    if(SQ("#al-msg-hdr")) SQ("#al-msg-hdr").value=a.header||"";
+    if(SQ("#al-msg-tpl")) SQ("#al-msg-tpl").value=a.template||"";
+    if(SQ("#al-msg-ftr")) SQ("#al-msg-ftr").value=a.footer||"";
     SQ("#al-wh-on").checked=!!wh.enabled;
     SQ("#al-wh-url").value=wh.url||""; SQ("#al-wh-auth").value=""; alSet("#al-wh-authset", wh.auth_set);
     if(SQ("#al-br-on")){ SQ("#al-br-on").checked=!!br.enabled; brUpdateMsg(); }
@@ -2747,6 +2903,7 @@ cat > /tmp/addsite.js << 'JSEOF'
     SQ("#al-oneach").checked=!!a.on_each_run;
     if(SQ("#al-onstatsna")) SQ("#al-onstatsna").checked=!!a.on_stats_na;
     (function(){ var f=a.stats_na_fields||["upload"]; document.querySelectorAll(".al-naf").forEach(function(c){ c.checked=f.indexOf(c.value)>=0; }); })();
+    alPreview("msg");
   }
   function chPayload(ch){
     if(ch==="email") return {channel:"email", email:{ enabled:SQ("#al-em-on").checked, host:SQ("#al-em-host").value.trim(),
@@ -2766,6 +2923,17 @@ cat > /tmp/addsite.js << 'JSEOF'
       if(j&&j.ok){ if(j.alerts) fillAlerts(j.alerts); chMsg(msgSel, "✓ enregistré", true); }
       else { chMsg(msgSel, "✗ "+((j&&j.error)||"erreur"), false); }
     }).catch(function(){ btn.disabled=false; chMsg(msgSel, "Service injoignable.", false); });
+  }
+  function saveTpl(){
+    var btn=SQ("#al-msg-save"); if(btn) btn.disabled=true; chMsg("#al-msg-msg","Enregistrement…",null);
+    post("/alerts", {tpl:true,
+      header:(SQ("#al-msg-hdr")?SQ("#al-msg-hdr").value:""),
+      template:(SQ("#al-msg-tpl")?SQ("#al-msg-tpl").value:""),
+      footer:(SQ("#al-msg-ftr")?SQ("#al-msg-ftr").value:"")}).then(function(j){
+      if(btn) btn.disabled=false;
+      if(j&&j.ok){ if(j.alerts) alertsCfg=j.alerts; chMsg("#al-msg-msg","✓ enregistré",true); }
+      else chMsg("#al-msg-msg","✗ "+((j&&j.error)||"erreur"),false);
+    }).catch(function(){ if(btn) btn.disabled=false; chMsg("#al-msg-msg","Service injoignable.",false); });
   }
   function testChannel(ch, msgSel, btn){
     var p=chPayload(ch); p.save=true;
@@ -2810,8 +2978,14 @@ cat > /tmp/addsite.js << 'JSEOF'
     SQ("#al-em-save").addEventListener("click", function(){ saveChannel("email", "#al-em-msg", this); });
     SQ("#al-tg-save").addEventListener("click", function(){ saveChannel("telegram", "#al-tg-msg", this); });
     SQ("#al-wh-save").addEventListener("click", function(){ saveChannel("webhook", "#al-wh-msg", this); });
-    SQ("#al-em-test").addEventListener("click", function(){ testChannel("email", "#al-em-msg", this); });
+    if(SQ("#al-em-test")) SQ("#al-em-test").addEventListener("click", function(){ testChannel("email", "#al-em-msg", this); });
     SQ("#al-tg-test").addEventListener("click", function(){ testChannel("telegram", "#al-tg-msg", this); });
+    ["hdr","tpl","ftr"].forEach(function(p){
+      var el=SQ("#al-msg-"+p);
+      if(el) el.addEventListener("input", function(){ alPreview("msg"); });
+    });
+    alBuildEmoji("msg"); alBuildVars("msg");
+    if(SQ("#al-msg-save")) SQ("#al-msg-save").addEventListener("click", saveTpl);
     SQ("#al-wh-test").addEventListener("click", function(){ testChannel("webhook", "#al-wh-msg", this); });
     ["#al-onfail","#al-onrecover","#al-oneach","#al-onstatsna"].forEach(function(s){ if(SQ(s)) SQ(s).addEventListener("change", saveTypes); });
     document.querySelectorAll(".al-naf").forEach(function(c){ c.addEventListener("change", saveTypes); });
@@ -3002,7 +3176,7 @@ cat > /tmp/addsite.js << 'JSEOF'
 
         <section class="cfg-sec" data-sec="logs">
           <h2>Logs</h2>
-          <div class="cfg-toolrow"><select id="lg-file"></select><button class="av-btn ghost" type="button" id="lg-reload">Recharger</button><select id="lg-theme" title="Couleur du terminal"><option value="">Sombre (défaut)</option><option value="lt-green">Vert terminal</option><option value="lt-amber">Ambre</option><option value="lt-blue">Bleu nuit</option><option value="lt-light">Clair</option></select><label class="av-switch-row" style="margin:0 0 0 6px"><span class="av-switch"><input type="checkbox" id="lg-live"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>Live</span></label></div>
+          <div class="cfg-toolrow"><select id="lg-file"></select><button class="av-btn ghost" type="button" id="lg-reload">Recharger</button><button class="av-btn ghost" type="button" id="lg-clear" title="Vider le journal affiché">Vider</button><select id="lg-theme" title="Couleur du terminal"><option value="">Sombre (défaut)</option><option value="lt-green">Vert terminal</option><option value="lt-amber">Ambre</option><option value="lt-blue">Bleu nuit</option><option value="lt-light">Clair</option></select><label class="av-switch-row" style="margin:0 0 0 6px"><span class="av-switch"><input type="checkbox" id="lg-live"><span class="av-sw-track"><span class="av-sw-thumb"></span></span></span><span>Live</span></label></div>
           <pre class="cfg-pre" id="lg-out">…</pre>
         </section>
 
@@ -3092,6 +3266,7 @@ cat > /tmp/addsite.js << 'JSEOF'
               <div class="av-field"><label>Mot de passe <span class="al-set" id="al-em-pwset"></span></label><input id="al-em-pass" type="password" autocomplete="new-password" placeholder="laisser vide pour conserver"></div>
               <div class="av-field"><label>Expéditeur (From)</label><input id="al-em-from" type="text" spellcheck="false" placeholder="malinois@mondomaine.fr"></div>
               <div class="av-field"><label>Destinataire(s) — séparés par des virgules</label><input id="al-em-to" type="text" spellcheck="false" placeholder="moi@exemple.fr"></div>
+              
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><button class="av-btn save" type="button" id="al-em-save">Enregistrer</button><button class="av-btn ghost" type="button" id="al-em-test">Tester l'e-mail</button><span class="av-hint" id="al-em-msg"></span></div>
             </div>
           </div>
@@ -3102,6 +3277,7 @@ cat > /tmp/addsite.js << 'JSEOF'
               <p class="av-hint" style="margin:0 0 8px">Crée un bot via @BotFather pour le token, puis récupère ton chat_id (via @userinfobot).</p>
               <div class="av-field"><label>Token du bot <span class="al-set" id="al-tg-tokset"></span></label><input id="al-tg-token" type="password" autocomplete="off" spellcheck="false" placeholder="laisser vide pour conserver"></div>
               <div class="av-field"><label>Chat ID</label><input id="al-tg-chat" type="text" spellcheck="false" placeholder="ex. 123456789"></div>
+              
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><button class="av-btn save" type="button" id="al-tg-save">Enregistrer</button><button class="av-btn ghost" type="button" id="al-tg-test">Tester Telegram</button><span class="av-hint" id="al-tg-msg"></span></div>
             </div>
           </div>
@@ -3150,6 +3326,20 @@ cat > /tmp/addsite.js << 'JSEOF'
             <button class="av-btn ghost" type="button" id="al-test">Tester tous les canaux actifs</button>
           </div>
           <p class="av-hint" id="al-msg" style="margin:10px 0 0"></p>
+        
+          <div class="al-block">
+            <label class="av-switch-row" style="cursor:default"><span>Modèle du message (commun à tous les canaux)</span></label>
+            <div style="margin-top:10px">
+              <p class="av-hint" style="margin:0 0 6px">Un seul modèle, utilisé pour l'e-mail, Telegram et ntfy. Clique une variable ou un émoji pour l'insérer au curseur. Laisser vide = message par défaut (selon l'événement).</p>
+              <div class="av-hint" style="margin:2px 0 4px">Émojis : <span class="al-emobar" id="al-msg-emobar"></span></div>
+              <div class="av-hint" style="margin:2px 0 6px">Variables (clic pour insérer) : <span class="al-varbar" id="al-msg-varbar"></span></div>
+              <label style="display:block;font-size:.82em;opacity:.75;margin:6px 0 2px">Entête</label><textarea id="al-msg-hdr" spellcheck="false" style="width:100%;min-height:44px;font:12.5px ui-monospace,Menlo,Consolas,monospace;resize:vertical" placeholder="ex. 🔔 MALINOIS — alerte tracker"></textarea>
+              <label style="display:block;font-size:.82em;opacity:.75;margin:6px 0 2px">Corps</label><textarea id="al-msg-tpl" spellcheck="false" style="width:100%;min-height:84px;font:12.5px ui-monospace,Menlo,Consolas,monospace;resize:vertical" placeholder="ex. {site} est {statut} — {stats}"></textarea>
+              <label style="display:block;font-size:.82em;opacity:.75;margin:6px 0 2px">Bas de page</label><textarea id="al-msg-ftr" spellcheck="false" style="width:100%;min-height:44px;font:12.5px ui-monospace,Menlo,Consolas,monospace;resize:vertical" placeholder="ex. 🕓 {date} {heure}"></textarea>
+              <div class="av-hint" style="margin:6px 0 2px">Aperçu :</div><pre id="al-msg-tpl-prev" style="white-space:pre-wrap;word-break:break-word;border:1px dashed;opacity:.8;border-radius:8px;padding:8px;margin:0;font:12.5px ui-monospace,Menlo,Consolas,monospace;min-height:18px"></pre>
+              <div class="cfg-actions" style="margin-top:12px"><button class="av-btn save" type="button" id="al-msg-save">Enregistrer le modèle</button><span class="av-hint" id="al-msg-msg" style="margin-left:8px"></span></div>
+            </div>
+          </div>
         </section>
       </main>
     </div>
@@ -3267,6 +3457,15 @@ cat > /tmp/addsite.js << 'JSEOF'
     }).catch(function(){ lgBusy=false; out.textContent="(service injoignable)"; });
   }
   SQ("#lg-reload").addEventListener("click", function(){ loadLogs(SQ("#lg-file").value); });
+  SQ("#lg-clear").addEventListener("click", function(){
+    var file=SQ("#lg-file").value||"cron.log";
+    if(!window.confirm("Vider le journal « "+file+" » ? Cette action est irréversible.")) return;
+    var b=this, o=b.textContent; b.disabled=true; b.textContent="…";
+    post("/logsclear",{file:file}).then(function(j){
+      b.disabled=false; b.textContent=o;
+      if(j&&j.ok){ loadLogs(file); } else { window.alert((j&&j.error)||"Vidage impossible."); }
+    }).catch(function(){ b.disabled=false; b.textContent=o; window.alert("Service injoignable."); });
+  });
   SQ("#lg-file").addEventListener("change", function(){ loadLogs(this.value); });
   var lgTimer=null;
   function stopLive(){ if(lgTimer){ clearInterval(lgTimer); lgTimer=null; } }
@@ -3529,8 +3728,8 @@ cat > /tmp/addsite.js << 'JSEOF'
         </div>
         <p class="av-hint" id="av-authswitch" style="margin:-4px 0 10px"><a href="#" id="av-tocookie" style="color:#74d0d6">🍪 Le tracker bloque (captcha, Cloudflare…) ? Se connecter par cookies de session →</a></p>
         <div id="av-cookieblock" style="display:none">
-          <div class="av-field"><label>Cookies de session</label><textarea id="av-cookies" rows="4" placeholder='Colle le JSON exporté ([{"name":"…","value":"…"}]) OU la chaîne brute « nom=valeur; nom2=valeur2 »'></textarea>
-          <p class="av-hint" style="margin:6px 0 0">Connecte-toi au tracker en cochant <b>« Se souvenir de moi »</b> <i>avant</i> d'exporter, puis récupère <b>tous</b> les cookies du domaine — en particulier le cookie persistant (souvent <code>remember_*</code> ou <code>remember_web_*</code>). Sans lui, la session expire au bout de quelques heures et les stats repassent en N/A.</p></div>
+          <div class="av-field"><label>Cookies de session</label><div id="av-ckrows"></div><button class="av-btn" type="button" id="av-ckadd" style="margin-top:4px;padding:4px 12px">+ Ajouter un cookie</button>
+          <p class="av-hint" style="margin:6px 0 0">Une ligne par cookie : son <b>nom</b> et sa <b>valeur complète</b> (depuis <code>F12 → Stockage → Cookies</code>, pour éviter la troncature « … » de l'onglet Réseau). Connecte-toi en cochant <b>« Se souvenir de moi »</b> <i>avant</i> de relever les cookies, et n'oublie pas le cookie persistant (souvent <code>remember_*</code> ou <code>remember_web_*</code>) : sans lui, la session expire en quelques heures et les stats repassent en N/A.</p></div>
           <div class="av-field"><label>User-Agent (celui du navigateur d'où viennent les cookies)</label><input id="av-ua" type="text" autocomplete="off" placeholder="Mozilla/5.0 ..."></div>
         </div>
         <div class="av-field" id="av-2farow" style="display:none"><label>Secret 2FA (base32)</label><input id="av-totp" type="text" placeholder="SECRET_BASE32 de ton app d'authentification" autocomplete="off"><p class="av-hint">Ce tracker demande un code 2FA. Colle ici le <b>secret</b> (la clé base32 affichée à l'activation du 2FA, ex. <code>JBSWY3DP…</code>) — pas un code à 6 chiffres : le bot tournant en continu, il génère lui-même le code à chaque visite.</p></div>
@@ -3908,8 +4107,24 @@ cat > /tmp/addsite.js << 'JSEOF'
     if(!dom) return null;
     return TRACKERS.filter(function(t){ var d=(t.d||"").replace(/^www\./,""); return d && (dom===d || dom.indexOf(d)>=0 || d.indexOf(dom)>=0); })[0] || null;
   }
+  function ckRowEls(){ return Array.prototype.slice.call(document.querySelectorAll("#av-ckrows .av-ckrow")); }
+  function ckAddRow(n, v, ph){
+    var box=Q("#av-ckrows"); if(!box) return null;
+    var row=document.createElement("div"); row.className="av-ckrow";
+    row.style.cssText="display:flex;gap:6px;margin-bottom:5px;align-items:center";
+    row.innerHTML='<input class="av-ckname" type="text" spellcheck="false" autocomplete="off" placeholder="nom du cookie" style="flex:0 0 40%;min-width:110px"><input class="av-ckval" type="text" spellcheck="false" autocomplete="off" placeholder="valeur complète (non tronquée)" style="flex:1;min-width:110px"><button type="button" class="av-ckdel" title="Retirer cette ligne" style="flex:0 0 auto;padding:2px 11px;line-height:1.4;cursor:pointer">×</button>';
+    var nm=row.querySelector(".av-ckname"); if(ph) nm.placeholder=ph; nm.value=n||""; row.querySelector(".av-ckval").value=v||"";
+    row.querySelector(".av-ckdel").addEventListener("click", function(){ row.parentNode.removeChild(row); if(!ckRowEls().length) ckAddRow(); });
+    box.appendChild(row); return row;
+  }
+  function ckReset(){ var box=Q("#av-ckrows"); if(box){ box.innerHTML="";
+    ckAddRow("","","cookie de session (ex. xf_session)");
+    ckAddRow("","","cookie « se souvenir » (ex. remember_web_…)");
+    ckAddRow("","","cookie Cloudflare (ex. cf_clearance)"); } }
+  function ckHasData(){ return ckRowEls().some(function(r){ return r.querySelector(".av-ckname").value.trim() && r.querySelector(".av-ckval").value.trim(); }); }
   function reset(){
-    ["av-name","av-domain","av-user","av-pass","av-verify","av-path","av-totp","av-stats","av-cookies","av-ua"].forEach(function(id){Q("#"+id).value="";});
+    ["av-name","av-domain","av-user","av-pass","av-verify","av-path","av-totp","av-stats","av-ua"].forEach(function(id){Q("#"+id).value="";});
+    ckReset();
     ["av-curl","av-pw","av-cf"].forEach(function(id){Q("#"+id).checked=false;});
     Q("#av-platform").value="form"; applyPreset("form"); picked=null; origSite=null; cookieMode=false; hideAc(); show2FA(false);
     Q("#av-config").style.display="none"; Q("#av-adv").open=false; setSummary(null);
@@ -3956,7 +4171,7 @@ cat > /tmp/addsite.js << 'JSEOF'
     Q("#av-manualrow").style.display="none";
     setAuthMode(t.au||"user");
     setSummary(t); showConfig(false); hideAc();
-    setTimeout(function(){ (t.au==="cookie"?Q("#av-cookies"):t.au==="key"?Q("#av-pass"):Q("#av-user")).focus(); }, 0);
+    setTimeout(function(){ (t.au==="cookie"?(Q("#av-ckrows .av-ckname")||Q("#av-name")):t.au==="key"?Q("#av-pass"):Q("#av-user")).focus(); }, 0);
     if (mode!=="test") setMode("test");
   }
   function renderAc(q){
@@ -3987,8 +4202,9 @@ cat > /tmp/addsite.js << 'JSEOF'
   Q("#av-tocookie").addEventListener("click", function(e){ e.preventDefault();
     if(picked && (picked.au==="cookie"||picked.au==="key")) return;
     cookieMode=!cookieMode; setAuthMode(cookieMode?"cookie":"user");
-    if(cookieMode) Q("#av-cookies").focus();
+    if(cookieMode){ var _f=Q("#av-ckrows .av-ckname"); if(_f) _f.focus(); }
   });
+  if(Q("#av-ckadd")) Q("#av-ckadd").addEventListener("click", function(){ var r=ckAddRow(); if(r){ var nm=r.querySelector(".av-ckname"); if(nm) nm.focus(); } });
 
   function openAdd(){ editOrig=null; reset(); Q("#av-title").textContent="Ajouter un site"; Q("#av-passlabel").textContent="Mot de passe"; ov.classList.add("open"); Q("#av-name").focus(); }
   function openEdit(slug){
@@ -4035,7 +4251,7 @@ cat > /tmp/addsite.js << 'JSEOF'
     var cookieauth = (picked && picked.au==="cookie") || cookieMode;
     if(!name||!domain) return null;
     if(!editOrig){
-      if(cookieauth){ if(!Q("#av-cookies").value.trim()) return null; }
+      if(cookieauth){ if(!ckHasData()) return null; }
       else { if(!keyauth && !user) return null; if(!pass) return null; }
     }
     var platform=Q("#av-platform").value;
@@ -4044,26 +4260,19 @@ cat > /tmp/addsite.js << 'JSEOF'
     var base="https://"+domain;
     var urlFromPath = /^https?:/i.test(pathRaw)?pathRaw:(base+pathRaw);
 
-    // helper cookies : accepte le JSON exporté OU une chaîne brute « nom=valeur; … »
+    // helper cookies : lit les lignes nom/valeur du formulaire
     function parseCookies(){
-      var t=Q("#av-cookies").value.trim(); if(!t) return null;
       var dom=cleanDomain(Q("#av-domain").value);
-      if(t.charAt(0)==="[" || t.charAt(0)==="{"){
-        try{ var c=JSON.parse(t);
-          if(Array.isArray(c)) return c;
-          if(c && Array.isArray(c.cookies)) return c.cookies;
-          buildErr="Cookies : tableau JSON attendu."; return false;
-        }catch(e){ buildErr="Cookies : JSON invalide ("+e.message+")."; return false; }
+      var rows=ckRowEls(), out=[];
+      for(var i=0;i<rows.length;i++){
+        var n=rows[i].querySelector(".av-ckname").value.trim();
+        var v=rows[i].querySelector(".av-ckval").value.trim();
+        if(!n && !v) continue;
+        if(!n || !v){ buildErr="Cookie incomplet : chaque ligne remplie doit avoir un nom ET une valeur."; return false; }
+        if(/[^\x00-\x7F]/.test(v)){ buildErr="Valeur du cookie « "+n+" » tronquée (contient « … »). Recopie la valeur COMPLÈTE depuis F12 → Stockage → Cookies."; return false; }
+        out.push({name:n, value:v, domain:dom, path:"/", secure:true, httpOnly:true});
       }
-      // format brut copié depuis le navigateur : nom=valeur; nom2=valeur2
-      var arr=[];
-      t.split(/;\s*/).forEach(function(p){
-        var i=p.indexOf("="); if(i<1) return;
-        var n=p.slice(0,i).trim(), v=p.slice(i+1).trim();
-        if(n) arr.push({name:n, value:v, domain:"."+dom, path:"/"});
-      });
-      if(!arr.length){ buildErr="Cookies : format non reconnu (colle le JSON exporté, ou « nom=valeur; … »)."; return false; }
-      return arr;
+      return out.length?out:null;
     }
 
     // ===== ÉDITION : repartir de la config réelle, n'écraser que ce qui change =====
@@ -4426,11 +4635,11 @@ cat > /tmp/addsite.js << 'JSEOF'
   }
 
   var refreshing=false;
-  function refresh(){
+  function refresh(silent){
     if(refreshing) return; refreshing=true;
     var _t0=Date.now();
-    if(brand) brand.classList.add("refreshing");
-    if(updatedEl) updatedEl.innerHTML='<span class="av-spin"></span>Actualisation…';
+    if(!silent && brand) brand.classList.add("refreshing");
+    if(!silent && updatedEl) updatedEl.innerHTML='<span class="av-spin"></span>Actualisation…';
     Promise.all([
       fetch("/sites").then(function(r){return r.json();}).catch(function(){return null;}),
       fetch("status.json?_="+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
@@ -4451,7 +4660,7 @@ cat > /tmp/addsite.js << 'JSEOF'
         }
       }
       var _dt=Date.now()-_t0;
-      if(_dt<600){ setTimeout(_done, 600-_dt); } else { _done(); }
+      if(!silent && _dt<600){ setTimeout(_done, 600-_dt); } else { _done(); }
     });
   }
 
@@ -4463,7 +4672,29 @@ cat > /tmp/addsite.js << 'JSEOF'
     else if(sov.classList.contains("open")) closeSettings();
     else if(ov.classList.contains("open")) closeAdd(true); }});
 
-  function init2(){ loadSettings(); loadAlerts(); refresh(); }
+  function init2(){ loadSettings(); loadAlerts(); refresh();
+    // Auto-rafraichissement : relit status.json toutes les 30 s pour refleter les
+    // changements pousses par le CRON (site qui revient en ligne, nouvelles stats),
+    // sans aucune action manuelle. En pause si l'onglet est en arriere-plan ou si
+    // une modale est ouverte, et silencieux (pas de spinner ni de delai).
+    if(window._avAuto) clearInterval(window._avAuto);
+    window._avAuto=setInterval(function(){
+      if(document.hidden) return;
+      if((ov&&ov.classList.contains("open"))||(sov&&sov.classList.contains("open"))||(iov&&iov.classList.contains("open"))||(cf&&cf.classList.contains("open"))) return;
+      refresh(true);
+    }, 30000);
+    // Reveille le dashboard des qu'on revient sur l'onglet (le poll 30 s etant en
+    // pause en arriere-plan) : actualisation immediate au retour de visibilite.
+    if(!window._avVisBound){
+      window._avVisBound=true;
+      document.addEventListener("visibilitychange", function(){
+        if(!document.hidden){
+          if((ov&&ov.classList.contains("open"))||(sov&&sov.classList.contains("open"))||(iov&&iov.classList.contains("open"))||(cf&&cf.classList.contains("open"))) return;
+          refresh(true);
+        }
+      });
+    }
+  }
   function init(){
     fetch("/auth/status").then(function(r){return r.json();}).then(function(j){
       if(j&&j.ok){ authState={configured:j.configured,twofa:j.twofa,authed:j.authed}; }
