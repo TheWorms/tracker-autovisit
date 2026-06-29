@@ -19,6 +19,13 @@ touch "$DATA/logs/cron.log"
 mkdir -p "$WEBROOT/icones"
 chown -R www-data:www-data "$WEBROOT" 2>/dev/null || true
 
+# 2.5) Config globale : semer data/config.json depuis le gabarit si absent (volume vide
+#      au 1er lancement). autovisit.py exige ce fichier ; on évite ainsi un exit(1).
+if [ ! -f "$DATA/config.json" ] && [ -f "$BASE/config.example.json" ]; then
+  cp "$BASE/config.example.json" "$DATA/config.json"
+  echo "[entrypoint] data/config.json créé depuis config.example.json (édite-le pour activer mail/ntfy)."
+fi
+
 # 3) Patch runtime des regex sites.d (no-op en v78.1, idempotent, future-safe)
 if [ -f "$BASE/patchers/malinois_patch_stats.py" ]; then
   python3 "$BASE/patchers/malinois_patch_stats.py" 2>/dev/null || true

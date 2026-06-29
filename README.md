@@ -164,6 +164,11 @@ MODE=lxc CT=100 CT_IP=192.168.0.50 LAN_CIDR=192.168.0.0/24 ./deploy-addsite.sh
 Dans ce mode, nginx/systemd/cron sont configurés directement sur la cible (le filtrage IP par
 `LAN_CIDR` y est appliqué). La version Docker, elle, s'appuie sur l'auth applicative + ton pare-feu.
 
+> **Config globale (requise)** : avant la première collecte, crée `data/config.json` à partir du gabarit fourni, puis édite-le (mail / ntfy) — en Docker c'est automatique (l'entrypoint le sème) :
+> ```bash
+> cp config.example.json data/config.json
+> ```
+
 ---
 
 ## Crédits & remerciements

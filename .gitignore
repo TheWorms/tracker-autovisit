@@ -8,6 +8,7 @@ data/logs/
 data/.sitebak/
 data/.statsbak/
 data/_webicones/
+data/config.json
 data/auth.json
 data/status.json
 data/settings.json
