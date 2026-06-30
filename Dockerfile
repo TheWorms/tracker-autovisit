@@ -40,6 +40,7 @@ RUN set -eux; \
     mkdir -p /var/www/autovisit/icones /var/www/autovisit/.logos; \
     cp web/index.html /var/www/autovisit/index.html; \
     cp web/addsite.js /var/www/autovisit/addsite.js; \
+    cp web/login.js /var/www/autovisit/login.js; \
     WEBROOT=/var/www/autovisit python3 tools/render_logos.py data/logos-manifest.json || true; \
     if [ -f tools/fetch_favicons.py ] && [ -f data/favicon-targets.json ]; then \
         python3 tools/fetch_favicons.py data/favicon-targets.json || true; \
