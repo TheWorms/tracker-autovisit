@@ -290,7 +290,7 @@
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var MALINOIS_VER="137";          // numéro de build interne (incrémenté à chaque livraison)
+  var MALINOIS_VER="139";          // numéro de build interne (incrémenté à chaque livraison)
   var APP_VERSION=(parseInt(MALINOIS_VER,10)/100).toFixed(2);  // version affichée = build/100 (ex. 102 -> 1.02)
   var alertsCfg=null;             // dernière config alertes connue (pour notifs navigateur)
   var _brPrevFailed=null;         // mémoire des sites en échec (notifs navigateur, anti-spam côté client)
@@ -656,7 +656,9 @@
       <div class="lg-msg" id="lg-result"></div>
     </div>
   </div>`);
-  document.body.appendChild(loginOv);
+  /* v138 : l'overlay de login n'est plus géré ici — login.js (public) s'en charge AVANT
+     de charger addsite.js. On ne l'injecte donc pas dans le DOM (évite un doublon #lg-page). */
+  /* document.body.appendChild(loginOv); */
   function LQ(s){ return loginOv.querySelector(s); }
   function showLogin(){
     var ic=document.querySelector('link[rel*="icon"]'); var lo=LQ("#lg-logo");
@@ -2273,7 +2275,8 @@
       if(j&&j.ok){ authState={configured:j.configured,twofa:j.twofa,authed:j.authed}; }
       if(j&&j.accent){ document.documentElement.style.setProperty("--ok", j.accent, "important"); }
       updateAuthBtn();
-      if(authState.configured && !authState.authed){ showLogin(); return; }
+      /* v138 : login.js a déjà géré l'auth en amont (addsite.js n'est servi que si
+         la session est valide, ou en setup initial). On va donc directement à init2. */
       init2();
     }).catch(function(){ init2(); });
   }

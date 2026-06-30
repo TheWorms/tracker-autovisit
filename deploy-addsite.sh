@@ -1,62 +1,8 @@
 #!/usr/bin/env bash
-# deploy-addsite.sh v137 — auth (login + 2FA optionnel), HTTPS gerable depuis l'UI (auto-signe / import),
-# v83 : menu Securite > HTTPS (toggle, cert auto-signe ou importe), nginx genere par le backend
-# (--write-nginx, rollback nginx -t), cookie Secure, restriction LAN des fichiers statiques + en-tetes securite.
-# v84 : fix routage nginx des routes /tls/ (location ~ ^/tls/ dediee, deux segments).
-# v85 : formulaire d'infos du certificat auto-signe (CN, SAN, organisation, pays, validite) avant generation.
-# v86 : mode Let's Encrypt/Certbot (HTTP-01 webroot, renouvellement auto via hook), location ACME ouverte.
-# v87 : durcissements auth (mdp min 8, throttle login 5/300s -> 429, rotation server_secret au changement, plafond corps 8 Mo).
-# v88 : mot de passe confirme (2e champ) + jauge de robustesse live, avec controle cote backend.
-# v89 : durcissements P3 (favicon plafonne 2 Mo + limite pixels anti-bombe ; nom de site interdit de commencer par -).
-# v90 : durcissement systemd sur (ProtectKernel*, ProtectControlGroups, ProtectClock, RestrictRealtime, LockPersonality).
-# v91 : logs cert (data/logs/tls.log) ; inspection a la demande (bouton "Lancer l'inspection", plus de visite auto a l'ouverture) ; gestion crontab dans l'admin (heure/minute + tous les N jours / tous les jours / jours choisis, apercu + crontab actif).
-# v92 : HOTFIX init JS (bindCron appele apres creation de l'overlay reglages ; corrige le dashboard vide en v91).
-# v93 : cron dans un onglet dedie Planification ; route logs liste toujours cron.log + tls.log (visibles meme vides).
-# v94 : bouton 2FA a la couleur d'accent (orange) au lieu du cyan (la classe etait reappliquee par le JS).
-# v95 : bac a sable systemd durci en root (ProtectSystem=full + ReadWritePaths /etc/nginx -/etc/letsencrypt + PrivateTmp) : /usr et /etc en lecture seule.
-# v96 : sandbox systemd RETIREE entierement (cassait le service) + nettoyage de tout override residuel ; ajout de letsencrypt.log (journal certbot) dans l'onglet Logs.
-# v97 : cookie Secure base sur le protocole reel (X-Forwarded-Proto transmis par nginx) au lieu de l'etat TLS global -> corrige dashboard vide / login en boucle en HTTP.
-# v98 : version de l'app affichee sous le menu (haut-droite) uniquement ; logs des inspections (data/logs/inspect.log) dans l'onglet Logs ; nouvel onglet Alertes (email SMTP / Telegram / webhook-ntfy) avec test d'envoi et alerte automatique sur echec de visite.
-# v99 : version d'affichage decouplee (APP_VERSION="0.97", centree sous le menu, padding haut 10px) du build interne ; onglet Alertes : choix des types d'alerte envoyes (echec / retablissement / resume a chaque visite).
-# v100 : onglet Alertes : bouton de test PAR canal (email / Telegram / webhook) testant chaque config separement (ignore le flag actif), en plus du test global ; envoi factorise en _send_email/_send_telegram/_send_webhook.
-# v101 : onglet Alertes : bouton Enregistrer PAR canal (plus de save global, mise a jour ciblee sans ecraser les autres) ; conditions enregistrees automatiquement ; notifications navigateur (Notification API, alerte a l'ecran sur nouvel echec) ; logs d'envoi des alertes (data/logs/alerts.log) dans l'onglet Logs.
-# v102 : version affichee derivee du build (build/100, ex. 1.02) ; messages de succes en VERT (nouvelle var --good) au lieu de l'orange d'accent ; meilleur contraste des bandeaux resultat (ok/ko, themes clair+sombre) ; le bandeau resultat est efface au changement d'onglet (plus d'erreur 2FA persistante sur un autre onglet).
-# v103 : echecs d'enregistrement au vrai rouge --ko (var --bad inexistante remplacee, correct en theme clair) ; hover des boutons tools (theme/+/reglages/deconnexion) a la couleur d'accent comme les actions ; placeholder "min. 8 caracteres" ajoute au champ de confirmation du mot de passe.
-# v104 : hover repense -> FOND d'accent (au lieu de colorer l'icone) sur les boutons tools (icone blanche) et FOND teinte sur les actions des lignes (la couleur d'icone ed/de/on/off ecrasait le hover par specificite egale) ; override de hover dedie au theme clair pour les actions.
-# v105 : possibilite de supprimer le logo personnalise (bouton "Supprimer le logo" dans Apparence, visible seulement si un logo existe ; backend delete_favicon + route /favicon {delete:true} -> retire favicon.png/.ico/apple-touch-icon et remet favicon=false).
-# v106 : hover des actions des lignes -> fond plein accent + icone blanche (comme tools, .av-actions .av-act:hover pour battre les couleurs d'icone ed/de) ; hover visible (fond accent) sur le bouton "Retour au dashboard" (etait un ghost a peine perceptible) ; closeSettings rendu infaillible (try/catch -> fermeture garantie meme si une etape echoue).
-# v107 : en-tete "Actions" ajoute au-dessus de la colonne des boutons d'action (coherence avec les autres colonnes ; aligne a droite comme les boutons, non triable).
-# v108 : hover accent (fond teinte) sur les onglets de configuration, via :not(.active) pour que l'onglet selectionne garde son fond plein accent (sombre + clair).
-# v109 : hover des onglets passe en fond plein accent + texte BLANC (au lieu du fond teinte/texte orange trop attenue), coherent avec tools et l'onglet actif.
-# v110 : hover des elements DEJA orange (boutons Enregistrer/save/go, onglet actif, + accent, bouton login) -> on fonce l'accent (color-mix 85% + noir) au lieu de l'eclaircir (brightness washait l'orange) ; bouton "Parcourir..." de l'input fichier stylise (bordure + hover orange plein/texte blanc, sombre + clair).
-# v111 : harmonisation des boutons d'action -> ghost/test/go/save passent en style NEUTRE (contour, "non selectionne") avec hover orange plein + texte blanc (sombre + clair) ; les Enregistrer ne sont plus orange par defaut (gras conserve pour rester l'action principale) ; concerne Generer/Obtenir un certificat, Supprimer le logo, Tester (e-mail/Telegram/webhook/notif/regex), Inspecter/Lancer l'inspection, Restaurer, Recharger, Reactualiser. Restent orange : onglet actif, bouton +, login (etats reellement actifs) ; fail/danger restent rouges.
-# v112 : clic sur le logo (actualisation) -> affiche "Actualise : <date + heure>" du MOMENT de l'actualisation (heure locale du navigateur, jj/mm/aaaa hh:mm) au lieu de "Mis a jour : <heure de mise a jour serveur des donnees>".
-# v113 : onglets config -> FIX texte de l'onglet actif en theme clair (etait gris-brun car html:not(.av-dark) .cfg-tab ecrasait le color:#fff par specificite) : regle dediee html:not(.av-dark) .cfg-tab.active = blanc + gras. Hover des onglets non-actifs repense : fond clair (teinte accent 12%) + bordure orange + texte orange (au lieu du remplissage orange plein), pour distinguer nettement du selectionne. Bordure transparente ajoutee a la base (.cfg-tab border:1px solid transparent) pour eviter tout decalage au survol.
-# v114 : bouton "Se deconnecter" (id av-logout) -> hover ROUGE (var(--ko) : corail en sombre, rouge franc en clair) au lieu de l'orange generique des av-tbtn, pour signaler clairement la sortie. ID = priorite sur les hovers orange des deux themes.
-# v115 : couleur d'accent appliquee en !important (l'inline bat toute regle :root, meme un CSS perso residuel) ; FIX toggles/cases qui ne suivaient PAS l'accent (accent-color #e3a857 code en dur + bordure de focus #e3a857 -> var(--ok)) ; les .av-check deviennent des CARRES toggle (appearance:none, remplissage accent + coche blanche au coche, hover/focus accent) au lieu des checkbox natives ; label "Couleur d'accent" renomme "Couleur bouton".
-# v116 : FIX CACHE du dashboard -> la racine "location = /" n'avait PAS d'en-tete no-store (seul /index.html exact l'avait), donc le navigateur servait une vieille version en cache (la couleur ne semblait pas prise en compte). Ajout de no-store sur / ; le ?v= d'addsite.js suit desormais le build (116) et est horodate a chaque deploiement (anti-cache garanti). Apres deploiement : un rafraichissement force (Ctrl+Maj+R) une fois suffit a purger l'ancien cache.
-# v117 : section Apparence repensee -> "Couleur bouton" renomme "Colorisation" ; le selecteur de couleur devient un petit rectangle compact (48x30) ; "Theme sombre par defaut" passe en vrai toggle bascule (.av-switch, piste accent au coche) ; les deux controles + leurs libelles sont desormais sur UNE seule ligne (.av-coltheme, flex).
-# v118 : ajout du tracker TeamOS (teamos.xyz, plateforme XenForo) a la base : login /login/ -> POST /login/login, champs login/password, CSRF _xfToken, remember, verif /account/. Entree login-only (selecteurs de stats a affiner via l'inspecteur si besoin).
-# v119 : TeamOS -> ajout des selecteurs de stats (download torrentUserDownloaded, upload torrentUserUploaded, ratio torrentUserRatio, bonus torrentUserSeedbonus, class userBanner) extraits du HTML du profil XenForo. Stats sur la page de profil membre : pointer la page de verif/stats du site sur /members/<slug>.<id>/.
-# v120 : TeamOS reconfigure sur le modele Nexum (stats sur page profil) -> mode cookie + URL de stats parametree par {{username}} (xf.u = /members/{{username}}/). Le champ "Pseudo sur le tracker (pour l'URL de stats)" s'affiche : y mettre le slug complet du profil (ex. monpseudo.123456). Login par formulaire retire (incompatible : le slug XenForo != identifiant de login).
-# v121 : option INSTALL_FLARESOLVERR=1 -> installe FlareSolverr SANS docker (binaire x64 auto-contenu + service systemd sur 127.0.0.1:8191, libseccomp2 auto). Defaut 0 = non installe (solveur externe attendu). README enrichi : commandes de deploiement/mise a jour, doc de l'option FlareSolverr, section Organisation Git (branche main privee + branche docker + propagation via merge ou action Forgejo). Squelette docker/ + .forgejo/workflows/sync-docker.yml ajoutes.
-# v122 : l'option FlareSolverr est desormais INTERACTIVE -> en terminal (ssh -t ou local) le script DEMANDE "Installer FlareSolverr ? [o/N]" ; la variable INSTALL_FLARESOLVERR reste prioritaire pour l'automatisation (non-interactif => defaut non). README + commandes mis a jour (ssh -t).
-# v123 : nouvelle alerte "Statistiques non recuperees" -> si un site est OK (connecte) mais que son upload revient N/A (vide ou "N/A"), envoi d'une alerte signalant des stats non recuperees (cause probable : cookie expire/renouvellement echoue). Nouvelle case dans l'onglet Alertes (on_stats_na), anti-spam via _last_stats_na, ne concerne que les sites exposant un champ upload.
-# v124 : FIX alerte stats N/A -> le status stocke stats en CHAINE ("upload: X | download: Y | ...") via format_stats, pas en dict ; l'alerte testait isinstance(dict) et ne se declenchait jamais. Ajout d'un parseur _upload_of qui gere dict ET chaine.
-# v125 : (1) les visites CRON evaluent desormais les alertes -> ligne cron enchaine "autovisit --json-output ; web-api.py --check-alerts" (nouveau mode CLI), + patch idempotent du crontab existant au deploiement ; check_and_alert n'est plus limite au bouton Reactualiser. (2) Choix multiple des champs surveilles pour l'alerte stats N/A (upload/download/ratio/bonus/seeding/rang) via stats_na_fields + multi-select dans l'onglet Alertes ; le message detaille les champs N/A par site.
-# v126 : (1) notif NAVIGATEUR etendue aux stats N/A (memes champs que la config serveur, anti-spam client _brPrevNa) -- avant elle ne couvrait que les echecs ; rappel : ne marche que dashboard ouvert. (2) Onglet Alertes redesigne : bloc "Quand alerter" en carte coherente, champs surveilles dans un encadre, + bouton Enregistrer dedie (avec feedback) en plus de l'auto-save.
-# v127 : FIX alertes -- la revisite unitaire d'un site (bouton revisite, route /revisit -> _bg_revisit) appelle desormais check_and_alert(), comme le Reactualiser global. Avant, une revisite mettait status.json a jour (donc la notif NAVIGATEUR cote client se declenchait) mais n'evaluait pas les alertes serveur -> aucun envoi mail/telegram/webhook. Desormais coherent : revisite unitaire = mail/telegram/webhook + navigateur.
-# v128 : (1) AUTO-RAFRAICHISSEMENT du dashboard -- poll silencieux de status.json toutes les 30 s (refresh(silent) sans spinner ni delai), en pause si l'onglet est en arriere-plan ou si une modale est ouverte. Les changements pousses par le CRON (ex. un site qui revient en ligne) s'affichent desormais SANS action manuelle. (2) Bouton "Vider" dans l'onglet Logs -> route POST /logsclear (tronque le journal selectionne dans data/logs ; letsencrypt.log protege car journal systeme).
-# v129 : MESSAGES D'ALERTE PERSONNALISES PAR CANAL -- chaque canal (e-mail, Telegram) peut definir un gabarit complet (champ "template" dans sa config). Variables : {site} {statut} {stats} {message} {date} {heure} {total} {nb_echec} {sites}. Pour que {site}/{statut}/{stats} aient un sens, les alertes echec/retabli/stats-N-A sont desormais envoyees PAR SITE (le resume "a chaque visite" reste agrege). Gabarit vide = message par defaut (comportement inchange). Rendu via _render_tpl ; send_alert(subject, body, ctx) ; check_and_alert reecrit pour emettre par site avec contexte.
-# v130 : (1) le bouton "Vider" gere desormais AUSSI letsencrypt.log (tronque /var/log/letsencrypt/letsencrypt.log ; le service tourne en root, certbot le realimente). (2) APERCU LIVE du gabarit d'alerte sous chaque zone (e-mail/Telegram) : rendu mis a jour a la frappe avec des valeurs d'exemple ; "(message par defaut)" si vide.
-# v131 : DETECTION CHALLENGE CLOUDFLARE -- patch autovisit (visit_site_session + verify Playwright) : si la page de verif est une page de defi CF ("just a moment"/"un instant"/_cf_chl_opt/challenge-platform/cf-turnstile/cf_chl_), le site est marque EN ECHEC au lieu d'un faux "OK" vert + stats N/A. Declenche donc les alertes on_failure. Utile pour tout tracker passant derriere Cloudflare (cas YGGReborn). Idempotent (marqueur MALINOIS-CF-CHALLENGE), recompilation verifiee.
-# v132 : auto-refresh -- actualisation IMMEDIATE au retour sur l'onglet (visibilitychange). Le poll 30 s etant en pause quand l'onglet est en arriere-plan, un changement pousse pendant ce temps (visite CRON/CLI) ne s'affichait qu'au cycle suivant ; desormais des qu'on revient sur l'onglet, refresh(true) immediat (sauf si une modale est ouverte).
-# v133 : GABARITS D'ALERTE ENRICHIS -- chaque canal (e-mail/Telegram) a desormais ENTETE + CORPS + BAS DE PAGE (champs header/footer en plus de template), chacun avec les memes variables ; le message final = entete + corps + pied (corps = gabarit si defini, sinon message par defaut selon l'evenement). Barre d'EMOJIS cliquable au-dessus (insertion au curseur, pratique pour Telegram). Apercu live assemble entete+corps+pied. send_alert assemble les 3 parties par canal.
-# v134 : les composeurs de modeles passent dans un onglet dedie "Modeles" (sous Reglages, a cote d'Alertes) -> meilleure lisibilite ; l'onglet Alertes ne garde que la config des canaux + conditions. Les VARIABLES deviennent CLIQUABLES (barre de puces, insertion au curseur comme les emojis). Bouton "Enregistrer le modele" par canal dans l'onglet Modeles.
-# v135 : MODELE UNIQUE COMMUN -- retour a un seul gabarit (entete+corps+pied) partage par TOUS les canaux (e-mail, Telegram, ntfy), stocke au niveau racine de la config (template/header/footer). Onglet "Modeles" supprime ; le composeur unique (avec emojis + variables cliquables + apercu) est place TOUT EN BAS de l'onglet Alertes. send_alert assemble une fois et envoie le meme message partout. _update_alerts gere la sauvegarde via {tpl:true,...}. Fini la duplication par canal.
-# v136 : COOKIES EN CHAMPS SEPARES -- le textarea JSON (#av-cookies) du formulaire d'inspection est remplace par des lignes nom/valeur (#av-ckrows + bouton "+ Ajouter un cookie"). Fini le "tableau JSON attendu" et les soucis de format. parseCookies lit les lignes -> [{name,value,domain,path:"/",secure,httpOnly}], rejette les lignes incompletes ET detecte les valeurs tronquees (presence de "…"/non-ASCII = copie depuis l'onglet Reseau au lieu de F12>Stockage). Helpers ckAddRow/ckReset/ckHasData ; reset()/focus/check de presence adaptes.
-# v137 : les 3 lignes cookies par defaut ont des placeholders DISTINCTS (cookie de session / cookie « se souvenir » / cookie Cloudflare) au lieu de "ex. cf_clearance" repete -- ckAddRow accepte un hint, ckReset le passe par ligne. Lignes ajoutees via "+ Ajouter" : placeholder generique "nom du cookie".
-# auth par cle (Nostradamus), rendu propre, logos, configs git fideles.
+# deploy-addsite.sh v139 — surcouche Malinois pour tracker-autovisit : dashboard web, auth (login + 2FA
+# optionnel), HTTPS gerable depuis l'UI (auto-signe / import). login.js public (portail d'auth) +
+# addsite.js (logique metier + base TRACKERS) GATE par session (auth_request nginx). Installe/patche
+# l'outil, genere la conf nginx (--write-nginx, gzip actif) et (re)demarre le service.
 # GARDE-FOU : pour desactiver l'auth si verrouille -> 'rm /opt/tracker-autovisit/data/auth.json' puis 'systemctl restart autovisit-web' (dans le conteneur).
 # set -e RETIRE volontairement : une etape intermediaire qui echoue (patcher,
 # daemon-reload, push…) ne doit JAMAIS empecher la mise a jour d'addsite.js / index.html
@@ -1220,7 +1166,9 @@ def _nginx_locations():
     return (
         "    add_header X-Frame-Options DENY;\n"
         "    add_header X-Content-Type-Options nosniff;\n"
-        "    location = /addsite.js { allow %s; deny all; add_header Cache-Control \"no-store\"; }\n"
+        "    location = /auth/check { internal; proxy_pass http://127.0.0.1:8099/auth/check; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; proxy_pass_request_body off; proxy_set_header Content-Length \"\"; }\n"
+        "    location = /login.js { allow %s; deny all; add_header Cache-Control \"no-store\"; }\n"
+        "    location = /addsite.js { allow %s; deny all; auth_request /auth/check; add_header Cache-Control \"no-store\"; }\n"
         "    location = /index.html { allow %s; deny all; add_header Cache-Control \"no-store\"; }\n"
         "    location = / { allow %s; deny all; add_header Cache-Control \"no-store\"; }\n"
         "    location = /status.json { allow %s; deny all; proxy_pass http://127.0.0.1:8099/status; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; add_header Cache-Control \"no-store, no-cache, must-revalidate\"; }\n"
@@ -1228,7 +1176,7 @@ def _nginx_locations():
         "    location ~ ^/tls/ { allow %s; deny all; proxy_pass http://127.0.0.1:8099; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; client_max_body_size 4m; proxy_read_timeout 150s; }\n"
         "    location ~ ^/alerts { allow %s; deny all; proxy_pass http://127.0.0.1:8099; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; proxy_read_timeout 40s; }\n"
         "    location ~ ^/(%s)$ { allow %s; deny all; proxy_pass http://127.0.0.1:8099; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; client_max_body_size 4m; proxy_connect_timeout 20s; proxy_send_timeout 200s; proxy_read_timeout 200s; }\n"
-        % (LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, api, LAN_CIDR))
+        % (LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, api, LAN_CIDR))
 
 def _acme_loc():
     return ("    location ^~ /.well-known/acme-challenge/ { allow all; default_type \"text/plain\"; root %s; }\n" % WEBROOT)
@@ -1239,15 +1187,18 @@ def nginx_config(https):
     name = st["domain"] if (st.get("mode") == "certbot" and st.get("domain")) else CT_IP
     cert, key = _active_paths()
     acme = _acme_loc()
+    gz = ("    gzip on;\n    gzip_comp_level 5;\n    gzip_min_length 1024;\n"
+          "    gzip_proxied any;\n    gzip_vary on;\n"
+          "    gzip_types text/css application/javascript application/json image/svg+xml;\n")
     if not https:
-        return ("server {\n    listen 80;\n    server_name %s;\n    root %s;\n    index index.html;\n%s%s}\n"
-                % (name, WEBROOT, acme, loc))
+        return ("server {\n    listen 80;\n    server_name %s;\n%s    root %s;\n    index index.html;\n%s%s}\n"
+                % (name, gz, WEBROOT, acme, loc))
     return ("server {\n    listen 80;\n    server_name %s;\n%s    location / { return 301 https://$host$request_uri; }\n}\n"
-            "server {\n    listen 443 ssl;\n    server_name %s;\n"
+            "server {\n    listen 443 ssl;\n    server_name %s;\n%s"
             "    ssl_certificate %s;\n    ssl_certificate_key %s;\n"
             "    ssl_protocols TLSv1.2 TLSv1.3;\n"
             "    root %s;\n    index index.html;\n%s%s}\n"
-            % (name, acme, name, cert, key, WEBROOT, acme, loc))
+            % (name, acme, name, gz, cert, key, WEBROOT, acme, loc))
 
 def write_nginx_from_state():
     """Ecrit la conf nginx selon tls.json (sans recharger). Utilise au deploiement."""
@@ -1361,6 +1312,13 @@ class H(BaseHTTPRequestHandler):
                                     "twofa": bool(load_auth().get("twofa")),
                                     "accent": read_settings().get("accent", ""),
                                     "authed": self._authed()})
+        if route == "/auth/check":
+            # Cible de l'auth_request nginx qui garde /addsite.js : 200 si l'accès est
+            # autorisé (session valide OU dashboard pas encore configuré = setup initial),
+            # 401 sinon. Réutilise _gate() pour rester aligné avec le reste de l'API.
+            if self._gate():
+                return self._send(401, {"ok": False, "error": "auth"})
+            return self._send(200, {"ok": True})
         if self._gate():
             return self._send(401, {"ok": False, "error": "auth"})
         if route == "/status":
@@ -2717,7 +2675,7 @@ cat > /tmp/addsite.js << 'JSEOF'
   @media(max-width:720px){.cfg-shell{flex-direction:column}.cfg-side{width:auto;flex:none;border-right:0;border-bottom:1px solid #262d38;flex-direction:row;flex-wrap:wrap}.cfg-nav{flex-direction:row;flex-wrap:wrap}.cfg-back{width:auto}.cfg-main{padding:22px 18px 50px}}`;
   document.head.appendChild(cfgStyle);
 
-  var MALINOIS_VER="137";          // numéro de build interne (incrémenté à chaque livraison)
+  var MALINOIS_VER="139";          // numéro de build interne (incrémenté à chaque livraison)
   var APP_VERSION=(parseInt(MALINOIS_VER,10)/100).toFixed(2);  // version affichée = build/100 (ex. 102 -> 1.02)
   var alertsCfg=null;             // dernière config alertes connue (pour notifs navigateur)
   var _brPrevFailed=null;         // mémoire des sites en échec (notifs navigateur, anti-spam côté client)
@@ -3083,7 +3041,9 @@ cat > /tmp/addsite.js << 'JSEOF'
       <div class="lg-msg" id="lg-result"></div>
     </div>
   </div>`);
-  document.body.appendChild(loginOv);
+  /* v138 : l'overlay de login n'est plus géré ici — login.js (public) s'en charge AVANT
+     de charger addsite.js. On ne l'injecte donc pas dans le DOM (évite un doublon #lg-page). */
+  /* document.body.appendChild(loginOv); */
   function LQ(s){ return loginOv.querySelector(s); }
   function showLogin(){
     var ic=document.querySelector('link[rel*="icon"]'); var lo=LQ("#lg-logo");
@@ -4700,7 +4660,8 @@ cat > /tmp/addsite.js << 'JSEOF'
       if(j&&j.ok){ authState={configured:j.configured,twofa:j.twofa,authed:j.authed}; }
       if(j&&j.accent){ document.documentElement.style.setProperty("--ok", j.accent, "important"); }
       updateAuthBtn();
-      if(authState.configured && !authState.authed){ showLogin(); return; }
+      /* v138 : login.js a déjà géré l'auth en amont (addsite.js n'est servi que si
+         la session est valide, ou en setup initial). On va donc directement à init2. */
       init2();
     }).catch(function(){ init2(); });
   }
@@ -4708,6 +4669,102 @@ cat > /tmp/addsite.js << 'JSEOF'
 })();
 JSEOF
 pct push $CT /tmp/addsite.js /var/www/autovisit/addsite.js --perms 644; rm /tmp/addsite.js
+
+echo "[6b/8] Portail login.js (public, filtre IP)…"
+cat > /tmp/login.js << 'LGEOF'
+/* login.js v138 — portail d'authentification Malinois (public, filtré IP).
+   Affiche UNIQUEMENT l'écran de connexion. Une fois authentifié — ou si le
+   dashboard n'est pas encore configuré (setup initial) — charge /addsite.js,
+   qui contient toute la logique métier + la base TRACKERS et qui est GATÉ par
+   session côté serveur (auth_request nginx -> /auth/check). Un visiteur non
+   connecté ne reçoit donc que ce fichier : une simple boîte de mot de passe. */
+(function () {
+  var APP_SRC = "/addsite.js?v=" + (window.__MAL_BUILD || Date.now());
+  function el(html){var d=document.createElement("div");d.innerHTML=html.trim();return d.firstChild;}
+  function post(url,obj){
+    return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},
+      credentials:"same-origin",body:JSON.stringify(obj||{})}).then(function(r){return r.json();});
+  }
+  var _appLoaded=false;
+  function loadApp(){
+    if(_appLoaded) return; _appLoaded=true;
+    try{ if(ov&&ov.parentNode) ov.parentNode.removeChild(ov); }catch(e){}
+    var s=document.createElement("script"); s.src=APP_SRC; document.body.appendChild(s);
+  }
+  var lgStyle = document.createElement("style");
+  lgStyle.textContent = `
+  #lg-page{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;padding:20px;
+    background:radial-gradient(1100px 560px at 50% -12%, rgba(176,125,42,.20), transparent), #14171d;font-family:inherit}
+  #lg-page.open{display:flex}
+  .lg-card{width:100%;max-width:380px;background:#1b2029;border:1px solid #2a3140;border-radius:18px;
+    padding:34px 30px 30px;box-shadow:0 30px 80px -24px rgba(0,0,0,.6)}
+  .lg-brand{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:24px}
+  .lg-logo{width:56px;height:56px;border-radius:14px;object-fit:contain;background:transparent}
+  .lg-name{font-size:21px;font-weight:700;letter-spacing:.22em;color:#f0c485}
+  .lg-sub{font-size:12.5px;color:#8b93a3}
+  .lg-field{margin-bottom:14px}
+  .lg-field label{display:block;font-size:12px;color:#8b93a3;margin-bottom:6px}
+  .lg-field input{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid #2a3140;background:#11151c;color:#e6eaf1;font-size:15px;outline:none}
+  .lg-field input:focus{border-color:var(--ok,#e0892b)}
+  .lg-remember{display:flex;align-items:center;gap:8px;font-size:13px;color:#cdd3dd;margin:2px 0 18px;cursor:pointer;user-select:none}
+  .lg-remember input{width:15px;height:15px;accent-color:var(--ok,#e0892b)}
+  .lg-btn{width:100%;padding:12px;border:none;border-radius:10px;background:var(--ok,#e0892b);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+  .lg-btn:disabled{opacity:.6;cursor:default}
+  .lg-msg{margin-top:12px;font-size:13px;text-align:center;min-height:16px;color:#8b93a3}
+  .lg-msg.ko{color:#e0796f}
+  html:not(.av-dark) #lg-page{background:radial-gradient(1100px 560px at 50% -12%, rgba(176,125,42,.14), transparent), #f3f1ec}
+  html:not(.av-dark) .lg-card{background:#fff;border-color:#e6e0d7;box-shadow:0 30px 80px -28px rgba(0,0,0,.25)}
+  html:not(.av-dark) .lg-name{color:#b07d2a}
+  html:not(.av-dark) .lg-sub,html:not(.av-dark) .lg-field label{color:#6b6560}
+  html:not(.av-dark) .lg-field input{background:#f6f4ef;border-color:#e2ddd6;color:#1a1a1a}
+  html:not(.av-dark) .lg-remember{color:#3a3a3a}`;
+  document.head.appendChild(lgStyle);
+  var ov = el(`
+  <div id="lg-page">
+    <div class="lg-card" role="dialog" aria-modal="true" aria-label="Connexion">
+      <div class="lg-brand">
+        <img class="lg-logo" id="lg-logo" alt="" style="display:none">
+        <div class="lg-name" id="lg-name">MALINOIS</div>
+        <div class="lg-sub">Accès au tableau de bord</div>
+      </div>
+      <div class="lg-field"><label>Mot de passe</label><input id="lg-pass" type="password" autocomplete="current-password"></div>
+      <div class="lg-field" id="lg-codefield" style="display:none"><label>Code 2FA</label><input id="lg-code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456"></div>
+      <label class="lg-remember"><input type="checkbox" id="lg-remember" checked> Se souvenir de moi</label>
+      <button class="lg-btn" id="lg-go" type="button">Se connecter</button>
+      <div class="lg-msg" id="lg-result"></div>
+    </div>
+  </div>`);
+  document.body.appendChild(ov);
+  function LQ(s){ return ov.querySelector(s); }
+  function showLogin(){
+    var ic=document.querySelector('link[rel*="icon"]'); var lo=LQ("#lg-logo");
+    if(ic&&ic.href){ lo.src=ic.href; lo.style.display="block"; }
+    var t=(document.title||"").split("—")[0].trim(); if(t) LQ("#lg-name").textContent=t;
+    ov.classList.add("open"); setTimeout(function(){ LQ("#lg-pass").focus(); }, 50);
+  }
+  function doLogin(){
+    var btn=LQ("#lg-go"); btn.disabled=true; btn.textContent="…";
+    post("/auth/login",{password:LQ("#lg-pass").value, code:LQ("#lg-code").value, remember:LQ("#lg-remember").checked}).then(function(j){
+      btn.disabled=false; btn.textContent="Se connecter";
+      if(j.ok){ ov.classList.remove("open"); loadApp(); }
+      else if(j.need_2fa){ LQ("#lg-codefield").style.display="block"; LQ("#lg-code").focus();
+        LQ("#lg-result").className="lg-msg"+(j.error?" ko":""); LQ("#lg-result").textContent=j.error||"Entre le code de ton application 2FA."; }
+      else { LQ("#lg-result").className="lg-msg ko"; LQ("#lg-result").textContent=j.error||"Échec de connexion."; }
+    }).catch(function(){ btn.disabled=false; btn.textContent="Se connecter"; LQ("#lg-result").className="lg-msg ko"; LQ("#lg-result").textContent="Service injoignable."; });
+  }
+  LQ("#lg-go").addEventListener("click", doLogin);
+  ov.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); doLogin(); } });
+  function boot(){
+    fetch("/auth/status",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(j){
+      if(j&&j.accent){ document.documentElement.style.setProperty("--ok", j.accent, "important"); }
+      if(j&&j.ok&&j.configured&&!j.authed){ showLogin(); return; }
+      loadApp();
+    }).catch(function(){ loadApp(); });
+  }
+  if(document.readyState!=="loading") boot(); else document.addEventListener("DOMContentLoaded", boot);
+})();
+LGEOF
+pct push $CT /tmp/login.js /var/www/autovisit/login.js --perms 644; rm /tmp/login.js
 
 echo "[7/8] Page index.html…"
 pct exec $CT -- bash -c "[ -f /var/www/autovisit/index.html.orig ] || cp /var/www/autovisit/index.html /var/www/autovisit/index.html.orig 2>/dev/null || true"
@@ -4941,11 +4998,11 @@ cat > /tmp/index.html << 'IDXEOF'
   <tbody id="tbody"></tbody>
 </table>
 </div>
-<script src="/addsite.js?v=116"></script>
+<script src="/login.js?v=116"></script>
 </body>
 </html>
 IDXEOF
-sed -i "s/addsite\.js?v=[0-9]*/addsite.js?v=$(date +%s)/" /tmp/index.html
+sed -i "s/login\.js?v=[0-9]*/login.js?v=$(date +%s)/" /tmp/index.html
 pct push $CT /tmp/index.html /var/www/autovisit/index.html --perms 644; rm /tmp/index.html
 pct exec $CT -- bash -c "chown -R www-data:www-data /var/www/autovisit 2>/dev/null || true"
 

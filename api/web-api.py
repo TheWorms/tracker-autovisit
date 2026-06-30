@@ -1006,7 +1006,9 @@ def _nginx_locations():
     return (
         "    add_header X-Frame-Options DENY;\n"
         "    add_header X-Content-Type-Options nosniff;\n"
-        "    location = /addsite.js { allow %s; deny all; add_header Cache-Control \"no-store\"; }\n"
+        "    location = /auth/check { internal; proxy_pass http://127.0.0.1:8099/auth/check; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; proxy_pass_request_body off; proxy_set_header Content-Length \"\"; }\n"
+        "    location = /login.js { allow %s; deny all; add_header Cache-Control \"no-store\"; }\n"
+        "    location = /addsite.js { allow %s; deny all; auth_request /auth/check; add_header Cache-Control \"no-store\"; }\n"
         "    location = /index.html { allow %s; deny all; add_header Cache-Control \"no-store\"; }\n"
         "    location = / { allow %s; deny all; add_header Cache-Control \"no-store\"; }\n"
         "    location = /status.json { allow %s; deny all; proxy_pass http://127.0.0.1:8099/status; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; add_header Cache-Control \"no-store, no-cache, must-revalidate\"; }\n"
@@ -1014,7 +1016,7 @@ def _nginx_locations():
         "    location ~ ^/tls/ { allow %s; deny all; proxy_pass http://127.0.0.1:8099; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; client_max_body_size 4m; proxy_read_timeout 150s; }\n"
         "    location ~ ^/alerts { allow %s; deny all; proxy_pass http://127.0.0.1:8099; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; proxy_read_timeout 40s; }\n"
         "    location ~ ^/(%s)$ { allow %s; deny all; proxy_pass http://127.0.0.1:8099; proxy_set_header Host $host; proxy_set_header Cookie $http_cookie; proxy_set_header X-Forwarded-Proto $scheme; client_max_body_size 4m; proxy_connect_timeout 20s; proxy_send_timeout 200s; proxy_read_timeout 200s; }\n"
-        % (LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, api, LAN_CIDR))
+        % (LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, LAN_CIDR, api, LAN_CIDR))
 
 def _acme_loc():
     return ("    location ^~ /.well-known/acme-challenge/ { allow all; default_type \"text/plain\"; root %s; }\n" % WEBROOT)
@@ -1025,15 +1027,18 @@ def nginx_config(https):
     name = st["domain"] if (st.get("mode") == "certbot" and st.get("domain")) else CT_IP
     cert, key = _active_paths()
     acme = _acme_loc()
+    gz = ("    gzip on;\n    gzip_comp_level 5;\n    gzip_min_length 1024;\n"
+          "    gzip_proxied any;\n    gzip_vary on;\n"
+          "    gzip_types text/css application/javascript application/json image/svg+xml;\n")
     if not https:
-        return ("server {\n    listen 80;\n    server_name %s;\n    root %s;\n    index index.html;\n%s%s}\n"
-                % (name, WEBROOT, acme, loc))
+        return ("server {\n    listen 80;\n    server_name %s;\n%s    root %s;\n    index index.html;\n%s%s}\n"
+                % (name, gz, WEBROOT, acme, loc))
     return ("server {\n    listen 80;\n    server_name %s;\n%s    location / { return 301 https://$host$request_uri; }\n}\n"
-            "server {\n    listen 443 ssl;\n    server_name %s;\n"
+            "server {\n    listen 443 ssl;\n    server_name %s;\n%s"
             "    ssl_certificate %s;\n    ssl_certificate_key %s;\n"
             "    ssl_protocols TLSv1.2 TLSv1.3;\n"
             "    root %s;\n    index index.html;\n%s%s}\n"
-            % (name, acme, name, cert, key, WEBROOT, acme, loc))
+            % (name, acme, name, gz, cert, key, WEBROOT, acme, loc))
 
 def write_nginx_from_state():
     """Ecrit la conf nginx selon tls.json (sans recharger). Utilise au deploiement."""
@@ -1147,6 +1152,13 @@ class H(BaseHTTPRequestHandler):
                                     "twofa": bool(load_auth().get("twofa")),
                                     "accent": read_settings().get("accent", ""),
                                     "authed": self._authed()})
+        if route == "/auth/check":
+            # Cible de l'auth_request nginx qui garde /addsite.js : 200 si l'accès est
+            # autorisé (session valide OU dashboard pas encore configuré = setup initial),
+            # 401 sinon. Réutilise _gate() pour rester aligné avec le reste de l'API.
+            if self._gate():
+                return self._send(401, {"ok": False, "error": "auth"})
+            return self._send(200, {"ok": True})
         if self._gate():
             return self._send(401, {"ok": False, "error": "auth"})
         if route == "/status":

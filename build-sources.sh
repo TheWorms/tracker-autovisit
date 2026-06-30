@@ -46,3 +46,6 @@ extract FAVEOF   data/favicon-targets.json
 
 echo "Terminé. Sources éclatées régénérées à partir de $SRC."
 echo "(Les logos/favicons sont produits séparément : render_logos.py + fetch_favicons.py au build.)"
+
+# login.js (portail auth public) — v139
+awk '/^cat > \/tmp\/login.js << .LGEOF./{f=1;next} /^LGEOF$/{f=0} f' deploy-addsite.sh > web/login.js
